@@ -1,0 +1,105 @@
+/* =========================
+   CREDIT PAGE WRAPPER
+========================= */
+
+.credit-container {
+  padding: 30px;
+  margin-left: 270px; /* if using sidebar dashboard */
+  min-height: 100vh;
+  background: #f4f6fb;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* =========================
+   PAGE TITLE
+========================= */
+
+.credit-container h2 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 20px;
+}
+
+/* =========================
+   CREDIT CARD
+========================= */
+
+.credit-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.credit-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================
+   TEXT STYLES
+========================= */
+
+.credit-card h3,
+.credit-card h4 {
+  margin: 0;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.credit-card p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #475569;
+}
+
+/* =========================
+   STATUS BADGES
+========================= */
+
+.status-credit {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(234, 179, 8, 0.15);
+  color: #ca8a04;
+}
+
+.status-paid {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+/* =========================
+   CREDIT HISTORY ITEMS
+========================= */
+
+.credit-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 10px;
+  margin-top: 8px;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 14px;
+  color: #334155;
+}
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.credit-container p {
+  color: #64748b;
+  font-size: 14px;
+}

@@ -1,0 +1,153 @@
+
+/* =========================
+   PAGE LAYOUT
+========================= */
+
+.payment-page {
+  margin-left: 270px;
+  padding: 30px;
+  min-height: 100vh;
+  background: #f4f6fb;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* =========================
+   TITLE
+========================= */
+
+.payment-page h2 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 20px;
+}
+
+/* =========================
+   PAYMENT SUMMARY CARD
+========================= */
+
+.payment-summary {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+  margin-bottom: 20px;
+  border-left: 5px solid #2563eb;
+}
+
+.payment-summary h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #16a34a;
+}
+
+.payment-summary p {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.payment-summary b {
+  color: #2563eb;
+  font-size: 14px;
+}
+
+/* =========================
+   ORDER PREVIEW BOX
+========================= */
+
+.order-preview {
+  background: white;
+  padding: 15px;
+  border-radius: 14px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+  margin-bottom: 20px;
+}
+
+/* EACH ITEM */
+.preview-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 8px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.preview-item:hover {
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.preview-item:last-child {
+  border-bottom: none;
+}
+
+/* PRODUCT NAME */
+.preview-item p:first-child {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* PRICE */
+.preview-item p:last-child {
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* =========================
+   CONFIRM BUTTON
+========================= */
+
+.checkout-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  transition: 0.2s ease;
+  box-shadow: 0 3px 8px rgba(34, 197, 94, 0.3);
+}
+
+.checkout-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+/* =========================
+   LOADING STATE
+========================= */
+
+.payment-page p {
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* =========================
+   DASHBOARD SPACE FIX
+========================= */
+
+.payment-page {
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+  .payment-page {
+    margin-left: 0;
+    padding: 15px;
+  }
+
+  .preview-item {
+    flex-direction: column;
+    gap: 5px;
+  }
+}

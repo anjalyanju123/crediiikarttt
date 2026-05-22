@@ -1,0 +1,93 @@
+.admin-page {
+  margin-left: 270px;
+  padding: 30px;
+  min-height: 100vh;
+  background: #f4f7fb;
+}
+
+.admin-page h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 30px;
+}
+
+/* Cards */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 25px;
+  margin-bottom: 35px;
+}
+
+.card {
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: 0.3s ease;
+  border-left: 5px solid #2563eb;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card h3 {
+  font-size: 18px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.card p {
+  font-size: 30px;
+  font-weight: bold;
+  color: #0f172a;
+}
+
+/* Chart Section */
+
+.chart-box {
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.chart-box h2 {
+  margin-bottom: 15px;
+  color: #1e293b;
+}
+
+.chart-box p {
+  color: #64748b;
+  font-size: 16px;
+}
+
+/* Loading */
+
+.loading-text {
+  font-size: 22px;
+  color: #475569;
+  text-align: center;
+  margin-top: 100px;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+
+  .admin-page {
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  .admin-page h1 {
+    font-size: 26px;
+  }
+
+  .card p {
+    font-size: 24px;
+  }
+}

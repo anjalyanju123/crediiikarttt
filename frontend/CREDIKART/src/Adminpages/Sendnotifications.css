@@ -1,0 +1,116 @@
+.admin-notification-container {
+  margin-left: 270px;
+  padding: 40px;
+  min-height: 100vh;
+  background: #f4f6fb;
+  font-family: "Segoe UI", sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+/* Page Title */
+.admin-notification-container h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+
+/* FORM CARD */
+.notification-form {
+  width: 400px;
+  background: #ffffff;
+  padding: 60px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: 0.3s ease;
+}
+
+.notification-form:hover {
+  transform: translateY(-3px);
+}
+
+/* INPUTS */
+.notification-form input,
+.notification-form textarea,
+.notification-form select {
+  width: 100%;
+  padding: 12px 8px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s;
+}
+
+.notification-form input:focus,
+.notification-form textarea:focus,
+.notification-form select:focus {
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* TEXTAREA */
+.notification-form textarea {
+  min-height: 130px;
+  resize: none;
+}
+
+/* BUTTON */
+.notification-form button {
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.notification-form button:hover {
+  transform: scale(1.04);
+  background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+}
+
+/* STATUS MESSAGE */
+.status {
+  margin-top: 15px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* SUCCESS STYLE */
+.status {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ERROR STYLE (optional improvement via JS class later) */
+.status.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .admin-notification-container {
+    flex-direction: column;
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  .notification-form {
+    width: 100%;
+  }
+}

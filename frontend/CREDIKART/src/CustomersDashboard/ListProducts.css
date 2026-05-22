@@ -1,0 +1,226 @@
+
+/* =========================
+   PAGE LAYOUT
+========================= */
+
+.container {
+  display: flex;
+  min-height: 100vh;
+  background: #f4f6fb;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* MAIN CONTENT */
+.main-content {
+  flex: 1;
+  margin-left: 270px;
+  padding: 30px;
+}
+
+/* TITLE */
+.main-content h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #0f172a;
+}
+
+/* =========================
+   FILTER BAR
+========================= */
+
+.filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.search-bar,
+.filters select,
+.filters input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  font-size: 14px;
+  background: white;
+  transition: 0.2s ease;
+}
+
+.search-bar:focus,
+.filters select:focus,
+.filters input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+
+/* =========================
+   GRID LAYOUT
+========================= */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 22px;
+}
+
+/* =========================
+   PRODUCT CARD (PREMIUM)
+========================= */
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* hover effect */
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+/* top gradient line */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #22c55e);
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+/* =========================
+   PRODUCT IMAGE
+========================= */
+
+.product-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  transition: 0.3s ease;
+}
+
+.card:hover .product-image {
+  transform: scale(1.03);
+}
+
+/* =========================
+   PRODUCT TITLE
+========================= */
+
+.card h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: -6px;
+}
+
+/* =========================
+   PRICE
+========================= */
+
+.price {
+  font-size: 5px;
+}
+
+/* =========================
+   DESCRIPTION
+========================= */
+
+.desc {
+  font-size: 5px;
+  color: #64748b;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+/* =========================
+   STOCK BADGES
+========================= */
+
+.status-approved {
+  display: inline-block;
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 5px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.status-rejected {
+  display: inline-block;
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 5px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* =========================
+   BUTTON
+========================= */
+
+.card button {
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.card button:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: scale(1.02);
+}
+
+.card button:active {
+  transform: scale(0.97);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 15px;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
+}
