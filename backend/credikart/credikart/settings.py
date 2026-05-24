@@ -92,16 +92,33 @@ WSGI_APPLICATION = 'credikart.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'credikartdb',
-        'USER': 'postgres',
-        'PASSWORD': 'Anjaly',
-        'HOST': 'localhost',
-        'PORT': '5432',
+import socket
+
+def is_postgres_running(host='localhost', port=5432):
+    try:
+        with socket.create_connection((host, port), timeout=1):
+            return True
+    except OSError:
+        return False
+
+if is_postgres_running():
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'credikartdb',
+            'USER': 'postgres',
+            'PASSWORD': 'Anjaly',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
