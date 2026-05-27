@@ -1,39 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, NavLink, useNavigate } from "react-router-dom";
 import "../Adminpages/Sidebar.css";
-import api from '../api/axios'
 
 function CustDashboard() {
     const navigate = useNavigate();
-    const [username, setUsername] = useState("");
 
-    useEffect(() => { fetchCurrentUser() }, []);
-
-    const fetchCurrentUser = async () => {
-        try {
-
-            const response = await api.get("/current_user/");
-
-            setUsername(response.data.username);
-
-        } catch (error) {
-
-            console.log(error);
-        }
-    };
-
+    const [user, setUser] = useState(() => {
+        return JSON.parse(localStorage.getItem("user")) || null;
+    });
     const handleLogout = () => {
 
-        // Remove tokens
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        // Completely clear all stored state (tokens, cart, checkout)
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user"); 
 
         // Redirect to login
         navigate("/");
+
     };
     return (
         <div className="sidebar">
-            <h2 className="sidebar-title">Welcome, {username}</h2>
+            <h2 className="sidebar-title"> Welcome, {user?.username}</h2>
 
             <nav className="sidebar-nav">
                 <NavLink
@@ -88,14 +76,6 @@ function CustDashboard() {
                     }
                 >
                     Credits
-                </NavLink>
-                   <NavLink
-                    to="/credit-history"
-                    className={({ isActive }) =>
-                        isActive ? "sidebar-link active" : "sidebar-link"
-                    }
-                >
-                    Credit History
                 </NavLink>
             </nav>
 

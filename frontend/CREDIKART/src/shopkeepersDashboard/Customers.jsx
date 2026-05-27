@@ -1,188 +1,97 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
-import ShopDashboard from "./ShopDashboard";
-import './Customers.css'
+import "./Customers.css";
+import Backbutton from "../auth/Backbutton";
 
 function Customers() {
-  const [users, setUsers] = useState([]);
-  const [search, setSearch] = useState("");
 
-  // FORM STATE (ADD / EDIT)
-  const [form, setForm] = useState({
-    id: null,
-    username: "",
-    email: "",
-    password: "",
-  });
+  const [customers, setCustomers] = useState([]);
 
-  const [isEdit, setIsEdit] = useState(false);
-
-  // ================= FETCH =================
-  const fetchUsers = async () => {
-    const res = await api.get("/customers/");
-    setUsers(res.data);
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  // ================= ADD =================
-  const addCustomer = async () => {
-    await api.post("/add_customer/", {
-      username: form.username,
-      email: form.email,
-      password: form.password,
-      role: "customer",
-    });
-
-    resetForm();
-    fetchUsers();
-  };
-
-  // ================= EDIT (LOAD DATA) =================
-  const handleEditClick = (user) => {
-    setForm({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      password: "",
-    });
-
-    setIsEdit(true);
-  };
-
-  // ================= UPDATE =================
-  const updateCustomer = async () => {
-    await api.put(`/update_customer/${form.id}/`, {
-      username: form.username,
-      email: form.email,
-    });
-
-    resetForm();
-    fetchUsers();
-  };
-
-  // ================= DELETE =================
-  const deleteCustomer = async (id) => {
-    if (window.confirm("Delete this customer?")) {
-      await api.delete(`/delete_customer/${id}/`);
-      fetchUsers();
+  // ================= FETCH CUSTOMERS =================
+  const fetchCustomers = async () => {
+    try {
+      const res = await api.get("/customers/");
+      setCustomers(res.data);
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  // ================= RESET =================
-  const resetForm = () => {
-    setForm({ id: null, username: "", email: "", password: "" });
-    setIsEdit(false);
-  };
-
-  // ================= FILTER =================
-  const filteredUsers = users.filter((u) =>
-    u.username.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
 
   return (
     <div className="shopkeepers-page">
-        <ShopDashboard />
+
+      <Backbutton />
+
       <div className="shopkeepers-container">
 
-        <h1>Customer Management</h1>
+        <h1>My Customers</h1>
 
-        {/* ================= FORM ================= */}
-        <div className="add-box">
-          <h3>{isEdit ? "Edit Customer" : "Add New Customer"}</h3>
+        {/* TOTAL CUSTOMERS */}
+        <div className="customer-count-card">
+          <h2>Total Customers</h2>
+          <p>{customers.length}</p>
+        </div>
 
-          <div className="add-form">
-            <input
-              placeholder="Username"
-              value={form.username}
-              onChange={(e) =>
-                setForm({ ...form, username: e.target.value })
-              }
-            />
+        {/* TABLE */}
+        <div className="customer-table">
 
-            <input
-              placeholder="Email"
-              value={form.email}
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })
-              }
-            />
-
-            {!isEdit && (
-              <input
-                type="password"
-                placeholder="Password"
-                value={form.password}
-                onChange={(e) =>
-                  setForm({ ...form, password: e.target.value })
-                }
-              />
-            )}
-
-            {isEdit ? (
-              <button className="approve-btn" onClick={updateCustomer}>
-                Update
-              </button>
-            ) : (
-              <button className="approve-btn" onClick={addCustomer}>
-                Add
-              </button>
-            )}
-
-            {isEdit && (
-              <button className="reject-btn" onClick={resetForm}>
-                Cancel
-              </button>
-            )}
+          {/* HEADER */}
+          <div className="customer-header">
+            <div>ID</div>
+            <div>Username</div>
+            <div>Email</div>
+            <div>Phone</div>
+            <div>Status</div>
           </div>
-        </div>
 
-        {/* ================= SEARCH ================= */}
-        <div className="filters">
-          <input
-            className="search-bar"
-            placeholder="Search customers..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        {/* ================= HEADER ================= */}
-        <div className="shopkeepers-header">
-          <div>ID</div>
-          <div>Username</div>
-          <div>Email</div>
-          <div>Action</div>
-        </div>
-
-        {/* ================= LIST ================= */}
-        {filteredUsers.map((u) => (
-          <div className="shopkeeper-row" key={u.id}>
-            <div>{u.id}</div>
-            <div>{u.username}</div>
-            <div>{u.email}</div>
-
-            <div style={{ display: "flex", gap: "8px" }}>
-              <button
-                className="approve-btn"
-                onClick={() => handleEditClick(u)}
+          {/* ROWS */}
+          {customers.length > 0 ? (
+            customers.map((customer) => (
+              <div
+                className="customer-row"
+                key={customer.id}
               >
-                Edit
-              </button>
+                <div>{customer.id}</div>
 
-              <button
-                className="reject-btn"
-                onClick={() => deleteCustomer(u.id)}
-              >
-                Delete
-              </button>
+                <div>
+                  {customer.username}
+                </div>
+
+                <div>
+                  {customer.email}
+                </div>
+
+                <div>
+                  {customer.phone || "N/A"}
+                </div>
+
+                <div>
+                  {customer.is_active ? (
+                    <span className="status-approved">
+                      Active
+                    </span>
+                  ) : (
+                    <span className="status-rejected">
+                      Blocked
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="no-customers">
+              No customers found
             </div>
-          </div>
-        ))}
+          )}
+
+        </div>
 
       </div>
+
     </div>
   );
 }

@@ -31,12 +31,6 @@ class User(AbstractUser):
 
     license_document = models.FileField(upload_to="shop_documents/",blank=True,null=True)
 
-    customers = models.ManyToManyField(
-        "self",
-        symmetrical=False,
-        blank=True,
-        related_name="shopkeepers"
-    )
 
     # ========================
     # APPROVAL SYSTEM
@@ -122,6 +116,15 @@ class Order(models.Model):
         ("pending", "Pending"),
         ("paid", "Paid"),
         ("credit", "Credit Pending"),
+        ("overdue", "Overdue"),
+    ]
+
+    REPAYMENT_CHOICES = [
+        ("weekly", "First Week"),
+        ("2_weeks", "Second Week"),
+        ("3_weeks", "Third Week"),
+        ("monthly", "Monthly"),
+        ("custom", "Custom Date"),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -129,9 +132,9 @@ class Order(models.Model):
     payment_method = models.CharField(max_length=10, choices=PAYMENT_CHOICES)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     due_date = models.DateField(null=True, blank=True) 
+    repayment_schedule = models.CharField(max_length=20,choices=REPAYMENT_CHOICES,null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
-
 class OrderItem(models.Model):
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
@@ -168,3 +171,15 @@ class Transaction(models.Model):
         return f"{self.user.username} - {self.transaction_type} - {self.amount}"
     
 
+class Repayment(models.Model):
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+
+    # Late payment penalty
+    penalty_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    paid_at = models.DateTimeField(auto_now_add=True)

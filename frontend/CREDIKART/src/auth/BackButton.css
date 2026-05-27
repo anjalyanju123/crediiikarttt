@@ -1,0 +1,60 @@
+.back_button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 999;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+
+  border: none;
+  border-radius: 10px;
+
+  padding: 10px 16px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+
+  transition: all 0.2s ease;
+
+  /* important safety fix */
+  max-width: fit-content;
+}
+
+/* hover */
+.back_button:hover {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  transform: translateY(-2px);
+}
+
+/* click */
+.back_button:active {
+  transform: scale(0.96);
+}
+
+/* focus accessibility */
+.back_button:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.4);
+  outline-offset: 2px;
+}
+
+/* =========================
+   MOBILE FIX
+========================= */
+@media (max-width: 768px) {
+  .back_button {
+    top: 12px;
+    left: 12px;
+
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}

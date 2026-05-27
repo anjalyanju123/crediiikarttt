@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
-import ShopDashboard from "./ShopDashboard";
 import "./Shopsend_notifications.css";
+import Backbutton from "../auth/Backbutton";
 
 function Shopsend_notifications() {
 
@@ -45,7 +45,7 @@ function Shopsend_notifications() {
   return (
     <div className="due-page">
 
-      <ShopDashboard />
+   <Backbutton />
 
       <div className="due-container">
 

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'crediapp',
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
 ]
 
@@ -88,6 +89,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'credikart.wsgi.application'
 
+RAZORPAY_KEY_ID = "rzp_test_SuUgh2l0OxC9qa"
+RAZORPAY_KEY_SECRET = "Vn72aLVlAAOW5AS4N16XCdRC"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -95,7 +98,7 @@ WSGI_APPLICATION = 'credikart.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'credikartdb',
+        'NAME': 'credikartdb2',
         'USER': 'postgres',
         'PASSWORD': 'Anjaly',
         'HOST': 'localhost',

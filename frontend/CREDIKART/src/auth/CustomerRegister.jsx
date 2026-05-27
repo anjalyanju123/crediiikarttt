@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import api from "../api/axios";
-import "./Register.css";
+import "./CustomerRegister.css";
 import { Link, useNavigate } from "react-router-dom";
 
 function CustomerRegister() {
@@ -13,36 +13,99 @@ function CustomerRegister() {
     confirm_password: "",
   });
 
+  const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // -----------------------
+  // LIVE VALIDATION
+  // -----------------------
+  const validateField = (name, value) => {
+    let error = "";
+
+    switch (name) {
+      case "email":
+        if (value && !value.includes("@")) {
+          error = "Invalid email format";
+        }
+        break;
+
+      case "phone":
+        if (value && !/^[6-9]\d{9}$/.test(value)) {
+          error = "Enter valid 10-digit Indian number";
+        }
+        break;
+
+      case "password":
+        if (value && value.length < 8) {
+          error = "Minimum 8 characters required";
+        }
+        break;
+
+      case "confirm_password":
+        if (value && value !== formData.password) {
+          error = "Passwords do not match";
+        }
+        break;
+
+      case "username":
+        if (value && value.length < 3) {
+          error = "Username must be at least 3 characters";
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    return error;
   };
 
+  // -----------------------
+  // HANDLE CHANGE
+  // -----------------------
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // live field validation
+    const errorMsg = validateField(name, value);
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: errorMsg,
+    }));
+
+    // live password match fix
+    if (name === "password" || name === "confirm_password") {
+      const password = name === "password" ? value : formData.password;
+      const confirm =
+        name === "confirm_password" ? value : formData.confirm_password;
+
+      setErrors((prev) => ({
+        ...prev,
+        confirm_password:
+          confirm && password !== confirm ? "Passwords do not match" : "",
+      }));
+    }
+  };
+
+  // -----------------------
+  // SUBMIT
+  // -----------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.password !== formData.confirm_password) {
-      setMessage("Passwords do not match");
-      return;
-    }
-    if (!formData.email.includes("@")) {
-  setMessage("Invalid email format");
-  return;
-    }
+    setMessage("");
+    setErrors({});
 
-    if (formData.phone.length !== 10) {
-    setMessage("Phone number must be 10 digits");
-    return;
-    }
-
-    if (formData.password.length < 8) {
-    setMessage("Password must be at least 8 characters");
-    return;
-    }
     try {
       const res = await api.post("/customer_register/", formData);
+
       console.log(res.data);
 
       setFormData({
@@ -53,11 +116,21 @@ function CustomerRegister() {
         password: "",
         confirm_password: "",
       });
-      navigate('/')
+
       setMessage("Customer registered successfully!");
+
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
     } catch (error) {
-      setMessage("Registration failed");
       console.log(error);
+
+      if (error.response?.data) {
+        setErrors(error.response.data);
+        setMessage("Please fix the errors");
+      } else {
+        setMessage("Registration failed");
+      }
     }
   };
 
@@ -68,31 +141,31 @@ function CustomerRegister() {
 
         <form onSubmit={handleSubmit}>
           <input
-            type="text"
             name="username"
             placeholder="Username"
             value={formData.username}
             onChange={handleChange}
             required
           />
+          {errors.username && <small className="error">{errors.username}</small>}
 
           <input
-            type="email"
             name="email"
             placeholder="Email"
             value={formData.email}
             onChange={handleChange}
             required
           />
+          {errors.email && <small className="error">{errors.email}</small>}
 
           <input
-            type="text"
             name="phone"
             placeholder="Phone Number"
             value={formData.phone}
             onChange={handleChange}
             required
           />
+          {errors.phone && <small className="error">{errors.phone}</small>}
 
           <textarea
             name="address"
@@ -100,7 +173,8 @@ function CustomerRegister() {
             value={formData.address}
             onChange={handleChange}
             required
-          ></textarea>
+          />
+          {errors.address && <small className="error">{errors.address}</small>}
 
           <input
             type="password"
@@ -110,6 +184,7 @@ function CustomerRegister() {
             onChange={handleChange}
             required
           />
+          {errors.password && <small className="error">{errors.password}</small>}
 
           <input
             type="password"
@@ -119,13 +194,18 @@ function CustomerRegister() {
             onChange={handleChange}
             required
           />
+          {errors.confirm_password && (
+            <small className="error">{errors.confirm_password}</small>
+          )}
 
           <button type="submit">Register</button>
         </form>
 
         {message && <p className="message">{message}</p>}
-         <p> Already have an account?
-          <Link to="/"> Login </Link></p>
+
+        <p className="cusregister_last_p">
+          Already have an account? <Link to="/">Login</Link>
+        </p>
       </div>
     </div>
   );

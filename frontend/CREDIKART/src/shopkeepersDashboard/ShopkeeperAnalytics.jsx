@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
-import ShopDashboard from "./ShopDashboard";
 import "./ShopkeeperAnalytics.css";
+import Backbutton from "../auth/Backbutton";
 
 function ShopkeeperAnalytics() {
 
@@ -33,7 +33,7 @@ function ShopkeeperAnalytics() {
   return (
     <div className="analytics-page">
 
-      <ShopDashboard />
+      <Backbutton />
 
       <div className="analytics-container">
 

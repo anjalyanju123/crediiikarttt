@@ -1,4 +1,3 @@
-import './App.css'
 import { BrowserRouter ,Routes ,Route} from 'react-router-dom';
 import AdminDashboard from './Adminpages/AdminDashboard';
 import Analytics from './Adminpages/Analytics';
@@ -18,12 +17,13 @@ import AdminCustomer from './Adminpages/AdminCustomer';
 import Cart from './CustomersDashboard/Cart';
 import Payment from './CustomersDashboard/Payement';
 import CreditList from './CustomersDashboard/CreditList';
-import CreditHistory from './CustomersDashboard/CreditHistory';
 import Notifications from './CustomersDashboard/Nofications';
 import Transactions from './CustomersDashboard/Transactions';
 import Order from './shopkeepersDashboard/Order';
 import Shopsend_notifications from './shopkeepersDashboard/Shopsend_notifications';
 import ShopkeeperAnalytics from './shopkeepersDashboard/ShopkeeperAnalytics';
+import Backbutton from './auth/Backbutton';
+import CustomerRepayment from './CustomersDashboard/CustomerRepayment';
 function App() {
  
 
@@ -32,6 +32,7 @@ function App() {
     <BrowserRouter>
     <Routes>
       <Route path='/' element={<Login />}/>
+      <Route path='/back' element={<Backbutton />}/>
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
       <Route path="/shopkeepers" element={<Shopkeepers />} />
       <Route path="/analytics" element={<Analytics />} />
@@ -57,9 +58,13 @@ function App() {
       <Route path='/cart' element={<Cart />} />
       <Route path='/payment' element={<Payment/>}/>
       <Route path='/credit-list' element={<CreditList />}/>
-      <Route path='/credit-history' element={<CreditHistory />}/>
       <Route path='/customer-notifications' element={<Notifications />}/>
       <Route path='/customer-transactions' element={<Transactions />}/>
+      <Route path='/customer-repayment/:id' element={<CustomerRepayment />}/>
+
+
+
+      
 
     </Routes>
     </BrowserRouter>

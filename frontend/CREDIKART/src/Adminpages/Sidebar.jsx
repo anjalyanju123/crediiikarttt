@@ -11,10 +11,12 @@ function Sidebar() {
     // Remove tokens
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user"); 
 
     // Redirect to login
     navigate("/");
   };
+  
   return (
     <div className="sidebar">
       <h2 className="sidebar-title">Admin Panel</h2>

@@ -17,10 +17,11 @@ from django.utils import timezone
 from django.utils.timezone import now
 from datetime import datetime
 from datetime import timedelta
-
+from django.shortcuts import get_object_or_404
+from django.db.models import Sum
+from .payment_gateway import client
 
 @api_view(["POST"])
-@permission_classes([AllowAny])
 def customer_register(request):
     serializer = CustomerRegisterSerializer(data=request.data)
 
@@ -38,7 +39,6 @@ def customer_register(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["POST"])
-@permission_classes([AllowAny])
 @parser_classes([MultiPartParser, FormParser])
 def shopkeeper_register(request):
     serializer = ShopkeeperRegisterSerializer(data=request.data)
@@ -73,9 +73,16 @@ def login_view(request):
             {"error": "Waiting for admin approval"},
             status=status.HTTP_403_FORBIDDEN
         )
-    print("AUTH USER:", user)
 
     refresh = RefreshToken.for_user(user)
+    if user.is_superuser:
+       user = User.objects.get(username="admin")
+       user.role = "admin"
+       user.is_staff = True
+       user.save()
+    else:
+      user.role = user.role
+  
     return Response({
         "access": str(refresh.access_token),
         "refresh": str(refresh),
@@ -216,6 +223,45 @@ def shopkeepers_list(request):
     return Response(serializer.data)    
 
 
+PENALTY_PERCENTAGE = 0.02   # 2%
+ADMIN_COMMISSION_PERCENTAGE = 0.05  # 5%
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def admin_revenue_dashboard(request):
+
+    # Total credit issued
+    total_credit = Transaction.objects.aggregate(
+        total=Sum("amount")
+    )["total"] or 0
+
+    # Total repayment collected
+    total_repayment = Repayment.objects.aggregate(
+        total=Sum("amount_paid")
+    )["total"] or 0
+
+    # Outstanding amount
+    outstanding_balance = total_credit - total_repayment
+
+    # Admin commission revenue
+    admin_commission = total_repayment * ADMIN_COMMISSION_PERCENTAGE
+
+    # Penalty revenue calculation
+    total_penalty = Repayment.objects.aggregate(
+        total=Sum("penalty_amount")
+    )["total"] or 0
+
+    # Total admin revenue
+    total_admin_revenue = admin_commission + total_penalty
+
+    return Response({
+        "total_credit_given": total_credit,
+        "total_repayment_received": total_repayment,
+        "outstanding_balance": outstanding_balance,
+        "commission_revenue": admin_commission,
+        "penalty_revenue": total_penalty,
+        "total_admin_revenue": total_admin_revenue
+    })
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -253,23 +299,11 @@ def get_notifications(request):
     return Response(data)
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def current_user(request):
-
-    user = request.user
-
-    return Response({
-        "username": user.username,
-        "role": user.role,})
-
-
-
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def products(request):
 
-    # ONLY CURRENT USER PRODUCTS
+    # ONLY CURRENT shopkeeper PRODUCTS
     if request.method == "GET":
 
         products = Product.objects.filter(
@@ -288,24 +322,17 @@ def products(request):
     elif request.method == "POST":
 
         serializer = ProductSerializer(
-            data=request.data
-        )
+                data=request.data,
+                context={"request": request}
+            )
 
         if serializer.is_valid():
 
-            serializer.save(
-                shopkeeper=request.user
-            )
+                serializer.save()
 
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
+                return Response(serializer.data, status=201)
 
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response(serializer.errors, status=400)
 
 
 
@@ -317,7 +344,7 @@ def product_detail(request, pk):
 
     try:
 
-        # ONLY USER OWN PRODUCT
+ # ONLY CURRENT shopkeeper PRODUCTS details
         product = Product.objects.get(
             id=pk,
             shopkeeper=request.user
@@ -406,36 +433,6 @@ def product_detail(request, pk):
 
 
 @api_view(["GET"])
-def product_list(request):
-    queryset = Product.objects.all()
-
-    # Get query params
-    search = request.GET.get("search")
-    category = request.GET.get("category")
-    max_price = request.GET.get("max_price")
-    in_stock = request.GET.get("in_stock")
-
-    # SEARCH by name
-    if search:
-        queryset = queryset.filter(name__icontains=search)
-
-    # FILTER by category
-    if category:
-        queryset = queryset.filter(category=category)
-
-    # FILTER by price
-    if max_price:
-        queryset = queryset.filter(price__lte=max_price)
-
-    # FILTER stock availability
-    if in_stock == "true":
-        queryset = queryset.filter(stock__gt=0)
-
-    serializer = ProductSerializer(queryset, many=True)
-    return Response(serializer.data)
-
-
-@api_view(["GET"])
 def AllProducts(request):
     queryset = Product.objects.all()
 
@@ -450,6 +447,7 @@ def AllProducts(request):
     # ======================
     if search:
         queryset = queryset.filter(name__icontains=search)
+        
 
     # ======================
     # CATEGORY FILTER
@@ -484,134 +482,97 @@ def admin_customers(request):
 
     return Response(serializer.data)
 
-@api_view(["POST"])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def admin_add_customer(request):
+def customer_list(request):
 
-    if request.user.role != "admin":
+    if request.user.role != "shopkeeper":
         return Response({"error": "Unauthorized"}, status=403)
 
-    user = User.objects.create_user(
-        username=request.data["username"],
-        email=request.data["email"],
-        password=request.data["password"],
+    orders = Order.objects.filter(
+    items__product__shopkeeper=request.user
+)
+
+    customers = User.objects.filter(
+        id__in=orders.values_list("user_id", flat=True),
         role="customer"
-    )
+    ).distinct()
 
-    return Response({"message": "Customer created"})
-
-
-@api_view(["PUT"])
-@permission_classes([IsAuthenticated])
-def admin_update_customer(request, id):
-    try:
-        customer = User.objects.get(id=id, role="customer")
-    except User.DoesNotExist:
-        return Response({"error": "Not found"}, status=404)
-
-    customer.username = request.data.get("username", customer.username)
-    customer.email = request.data.get("email", customer.email)
-    customer.save()
-
-    return Response({"message": "Customer updated"})
-
-@api_view(["GET"])
-def customer_list(request):
-    customers = User.objects.filter(role="customer")
     serializer = CustomerSerializer(customers, many=True)
     return Response(serializer.data)
 
-
-# ================= ADD =================
-@api_view(["POST"])
-def add_customer(request):
-    user = User.objects.create_user(
-        username=request.data["username"],
-        email=request.data["email"],
-        password=request.data["password"],
-        role="customer"
-    )
-    return Response({"message": "Customer created"})
-
-
-# ================= UPDATE =================
-@api_view(["PUT"])
-def update_customer(request, id):
-    try:
-        customer = User.objects.get(id=id, role="customer")
-    except User.DoesNotExist:
-        return Response({"error": "Not found"}, status=404)
-
-    customer.username = request.data.get("username", customer.username)
-    customer.email = request.data.get("email", customer.email)
-    customer.save()
-
-    return Response({"message": "Customer updated"})
-
-
-# ================= DELETE =================
-@api_view(["DELETE"])
-def delete_customer(request, id):
-    try:
-        customer = User.objects.get(id=id, role="customer")
-        customer.delete()
-        return Response({"message": "Deleted"})
-    except User.DoesNotExist:
-        return Response({"error": "Not found"}, status=404)
-    
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def place_order(request):
-
     try:
-
         user = request.user
-
-        # ================= CHECK OVERDUE =================
-        overdue_exists = Order.objects.filter(
-            user=user,
-            payment_method="credit",
-            status="overdue"
-        ).exists()
-
-        if overdue_exists:
-            return Response(
-                {
-                    "error": "You have overdue payments. Clear dues before purchasing."
-                },
-                status=403
-            )
-
         data = request.data
 
         payment_method = data.get("payment_method")
         total_amount = data.get("total_amount")
         items = data.get("items", [])
 
+        repayment_schedule = data.get("repayment_schedule")
+        custom_due_date = data.get("custom_due_date")
+
+        # ================= CHECK OVERDUE =================
+        if Order.objects.filter(
+            user=user,
+            payment_method="credit",
+            status="overdue"
+        ).exists():
+            return Response(
+                {"error": "You have overdue payments. Clear dues before purchasing."},
+                status=403
+            )
+
+        # ================= CALCULATE DUE DATE =================
+        due_date = None
+
+        if payment_method == "credit":
+            if repayment_schedule == "weekly":
+                due_date = timezone.now().date() + timedelta(days=7)
+
+            elif repayment_schedule == "2_weeks":
+                due_date = timezone.now().date() + timedelta(days=14)
+
+            elif repayment_schedule == "3_weeks":
+                due_date = timezone.now().date() + timedelta(days=21)
+
+            elif repayment_schedule == "monthly":
+                due_date = timezone.now().date() + timedelta(days=30)
+
+            elif repayment_schedule == "custom":
+                if not custom_due_date:
+                    return Response(
+                        {"error": "Custom due date is required"},
+                        status=400
+                    )
+                due_date = datetime.strptime(custom_due_date, "%Y-%m-%d").date()
+
+            else:
+                due_date = timezone.now().date() + timedelta(days=7)
+
         # ================= CREATE ORDER =================
         order = Order.objects.create(
             user=user,
             total_amount=total_amount,
             payment_method=payment_method,
-            status="credit" if payment_method == "credit" else "paid"
+            status="credit" if payment_method == "credit" else "paid",
+            due_date=due_date
         )
 
         # ================= ORDER ITEMS =================
         for item in items:
-
-            product = Product.objects.get(id=item["product"])
+            product = get_object_or_404(Product, id=item["product"])
 
             # stock check
             if product.stock < item["quantity"]:
-
                 return Response(
-                    {
-                        "error": f"{product.name} out of stock"
-                    },
+                    {"error": f"{product.name} out of stock"},
                     status=400
                 )
 
-            # create order item
             OrderItem.objects.create(
                 order=order,
                 product=product,
@@ -622,18 +583,36 @@ def place_order(request):
             # reduce stock
             product.stock -= item["quantity"]
 
-            if product.stock == 0:
+            if product.stock <= 0:
+                product.stock = 0
                 product.is_available = False
 
             product.save()
 
+        # ================= TRANSACTION =================
+        Transaction.objects.create(
+            user=user,
+            order=order,
+            transaction_type="credit" if payment_method == "credit" else "payment",
+            amount=total_amount,
+            description="Credit Purchase" if payment_method == "credit" else "Ready Payment"
+        )
+
+        # ================= NOTIFICATION =================
+        if payment_method == "credit":
+            Notification.objects.create(
+                title="Credit Purchase Created",
+                message=f"Your payment of ₹{total_amount} is due on {due_date}",
+                role="customer"
+            )
+
         return Response({
             "message": "Order placed successfully",
-            "order_id": order.id
-        })
+            "order_id": order.id,
+            "due_date": due_date
+        }, status=201)
 
     except Exception as e:
-
         return Response(
             {"error": str(e)},
             status=500
@@ -642,77 +621,151 @@ def place_order(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def customer_transactions(request):
-    user = request.user
 
-    transactions = Transaction.objects.filter(user=user).order_by("-created_at")
+    transactions = Transaction.objects.filter(
+        user=request.user
+    ).order_by("-created_at")
 
-    serializer = TransactionSerializer(transactions, many=True)
+    data = [
+        {
+            "id": t.id,
+            "transaction_type": t.transaction_type,
+            "amount": t.amount,
+            "description": t.description,
+            "created_at": t.created_at
+        }
+        for t in transactions
+    ]
 
-    return Response(serializer.data)    
+    return Response(data) 
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def repay_credit(request, order_id):
+
+    try:
+        
+        order = Order.objects.get(
+            id=order_id,
+            user=request.user
+        )
+        if order.status == "paid":
+            return Response(
+        {"error": "Already paid"},
+        status=400
+    )
+
+        order.status = "paid"
+        order.payment_method = "ready"
+        order.save()
+
+        Transaction.objects.create(
+            user=request.user,
+            order=order,
+            transaction_type="payment",
+            amount=order.total_amount,
+            description="Credit Repayment"
+        )
+
+        return Response({
+            "message": "Repayment successful"
+        })
+
+    except Order.DoesNotExist:
+
+        return Response(
+            {"error": "Order not found"},
+            status=404
+        )
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def credit_list(request):
-    user = request.user
 
-    credits = Order.objects.filter(
-        user=user,
-        payment_method="credit"
-    ).order_by("-created_at")
+    try:
+        user = request.user
 
-    data = []
+        # only current user's credit orders
+        orders = Order.objects.filter(
+            user=user,
+            payment_method="credit"
+        ).order_by("-created_at")
 
-    for o in credits:
-        data.append({
-            "id": o.id,
-            "total_amount": o.total_amount,
-            "status": o.status,
-            "created_at": o.created_at,
-            "items": [
-                {
-                    "product": i.product.name,
-                    "qty": i.quantity,
-                    "price": i.price
-                }
-                for i in o.items.all()
-            ]
-        })
+        data = []
 
-    return Response(data)
+        for order in orders:
+
+            items_data = []
+
+            for item in order.items.all():
+
+                items_data.append({
+                    "product_name": item.product.name,
+                    "quantity": item.quantity,
+                    "price": item.price,
+                    "subtotal": item.quantity * item.price
+                })
+
+            data.append({
+                "id": order.id,
+                "customer": order.user.username,
+                "total_amount": order.total_amount,
+                "payment_method": order.payment_method,
+                "status": order.status,
+                "due_date": order.due_date,
+                "created_at": order.created_at,
+                "items": items_data
+            })
+
+        return Response(data)
+
+    except Exception as e:
+
+        return Response(
+            {"error": str(e)},
+            status=500
+        )
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def credit_history(request):
-    user = request.user
+def credit_detail(request, order_id):
 
-    orders = Order.objects.filter(
-        user=user,
-        payment_method="credit"
-    ).order_by("-created_at")
+    try:
 
-    data = []
+        order = Order.objects.get(
+            id=order_id,
+            user=request.user
+        )
 
-    for order in orders:
-        items = order.items.all()
-
-        data.append({
-            "order_id": order.id,
+        data = {
+            "id": order.id,
+            "customer": order.user.username,
             "total_amount": order.total_amount,
             "status": order.status,
+            "due_date": order.due_date,
             "created_at": order.created_at,
+
             "items": [
                 {
-                    "product": i.product.name,
-                    "quantity": i.quantity,
-                    "price": i.price,
-                    "subtotal": i.quantity * i.price
+                    "product_name": item.product.name,
+                    "quantity": item.quantity,
+                    "price": item.price,
                 }
-                for i in items
+                for item in order.items.all()
             ]
-        })
+        }
 
-    return Response(data)
+        return Response(data)
 
+    except Order.DoesNotExist:
+
+        return Response(
+            {"error": "Order not found"},
+            status=404
+        )
+    
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -839,83 +892,103 @@ def send_due_notification(request, order_id):
 def shopkeeper_analytics(request):
 
     if request.user.role != "shopkeeper":
-        return Response(
-            {"error": "Unauthorized"},
-            status=403
-        )
+        return Response({"error": "Unauthorized"}, status=403)
 
     today = timezone.now()
-
     week = today - timedelta(days=7)
     month = today - timedelta(days=30)
-
-    # ================= SHOPKEEPER ORDERS =================
 
     orders = Order.objects.filter(
         items__product__shopkeeper=request.user
     ).distinct()
 
-    # ================= TOTAL =================
+    total_credit = orders.filter(
+        payment_method="credit"
+    ).aggregate(total=Sum("total_amount"))["total"] or 0
 
-    total_credit = sum(
-        o.total_amount
-        for o in orders.filter(
-            payment_method="credit"
-        )
-    )
+    total_paid = orders.filter(
+        status="paid"
+    ).aggregate(total=Sum("total_amount"))["total"] or 0
 
-    total_paid = sum(
-        o.total_amount
-        for o in orders.filter(
-            status="paid"
-        )
-    )
+    weekly_credit = orders.filter(
+        payment_method="credit",
+        created_at__gte=week
+    ).aggregate(total=Sum("total_amount"))["total"] or 0
 
-    # ================= WEEKLY =================
+    weekly_paid = orders.filter(
+        status="paid",
+        created_at__gte=week
+    ).aggregate(total=Sum("total_amount"))["total"] or 0
 
-    weekly_credit = sum(
-        o.total_amount
-        for o in orders.filter(
-            payment_method="credit",
-            created_at__gte=week
-        )
-    )
+    monthly_credit = orders.filter(
+        payment_method="credit",
+        created_at__gte=month
+    ).aggregate(total=Sum("total_amount"))["total"] or 0
 
-    weekly_paid = sum(
-        o.total_amount
-        for o in orders.filter(
-            status="paid",
-            created_at__gte=week
-        )
-    )
-
-    # ================= MONTHLY =================
-
-    monthly_credit = sum(
-        o.total_amount
-        for o in orders.filter(
-            payment_method="credit",
-            created_at__gte=month
-        )
-    )
-
-    monthly_paid = sum(
-        o.total_amount
-        for o in orders.filter(
-            status="paid",
-            created_at__gte=month
-        )
-    )
+    monthly_paid = orders.filter(
+        status="paid",
+        created_at__gte=month
+    ).aggregate(total=Sum("total_amount"))["total"] or 0
 
     return Response({
-
         "total_credit": total_credit,
         "total_paid": total_paid,
-
         "weekly_credit": weekly_credit,
         "weekly_paid": weekly_paid,
-
         "monthly_credit": monthly_credit,
         "monthly_paid": monthly_paid,
-
     })
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_razorpay_order(request, order_id):
+
+    order = Order.objects.get(id=order_id, user=request.user)
+
+    data = {
+        "amount": int(order.total_amount * 100),  # paise
+        "currency": "INR",
+        "payment_capture": 1
+    }
+
+    payment = client.order.create(data=data)
+
+    return Response({
+        "order_id": payment["id"],
+        "amount": payment["amount"],
+        "currency": payment["currency"],
+        "key": settings.RAZORPAY_KEY_ID
+    })
+
+import hmac
+import hashlib
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def verify_payment(request, order_id):
+
+    order = Order.objects.get(id=order_id, user=request.user)
+
+    razorpay_order_id = request.data["razorpay_order_id"]
+    razorpay_payment_id = request.data["razorpay_payment_id"]
+    razorpay_signature = request.data["razorpay_signature"]
+
+    msg = f"{razorpay_order_id}|{razorpay_payment_id}"
+
+    secret = settings.RAZORPAY_KEY_SECRET
+
+    generated_signature = hmac.new(
+        secret.encode(),
+        msg.encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    if generated_signature == razorpay_signature:
+
+        order.status = "paid"
+        order.payment_method = "ready"
+        order.save()
+
+        return Response({"message": "Payment verified successfully"})
+
+    return Response({"error": "Invalid signature"}, status=400)

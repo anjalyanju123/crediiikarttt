@@ -1,78 +1,72 @@
+import './Revenue.css'
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
-import './Revenue.css'
-import Sidebar from "./Sidebar";
+import Backbutton from '../auth/Backbutton';
 
-export default function RevenueAnalytics() {
-
-  const [revenueData, setRevenueData] = useState({
-    totalRevenue: 0,
-    monthlyRevenue: 0,
-    revenueGrowth: 0,
+function RevenueAnalytics() {
+  const [revenue, setRevenue] = useState({
+    total_credit_given: 0,
+    total_repayment_received: 0,
+    outstanding_balance: 0,
+    commission_revenue: 0,
+    penalty_revenue: 0,
+    total_admin_revenue: 0,
   });
 
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
-    fetchRevenueData();
+    fetchRevenue();
   }, []);
 
-  const fetchRevenueData = async () => {
-
+  const fetchRevenue = async () => {
     try {
-
-      const response = await api.get("/admin_revenue/");
-
-      setRevenueData(response.data);
-
+      const response = await api.get("/admin_revenue_dashboard/");
+      setRevenue(response.data);
     } catch (error) {
-
-      console.error("Error fetching revenue analytics:", error);
-
-    } finally {
-
-      setLoading(false);
+      console.error("Error fetching revenue:", error);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="admin-page">
-        <h2>Loading Revenue Analytics...</h2>
-      </div>
-    );
-  }
-
   return (
-    <div className="admin-page">
-         <Sidebar />
+    <div className="admin-revenue-container">
+      <Backbutton />
 
-      <h1>Revenue Analytics</h1>
+      <h2 className="title">Admin Revenue Dashboard</h2>
 
-      <div className="card-grid">
+      <div className="revenue-grid">
 
-        <div className="card">
-          <h3>Total Revenue</h3>
-          <p>₹{revenueData.totalRevenue}</p>
+        <div className="revenue-card">
+          <h3>Total Credit</h3>
+          <p>₹ {revenue.total_credit_given}</p>
         </div>
 
-        <div className="card">
-          <h3>Monthly Revenue</h3>
-          <p>₹{revenueData.monthlyRevenue}</p>
+        <div className="revenue-card">
+          <h3>Total Repayment</h3>
+          <p>₹ {revenue.total_repayment_received}</p>
         </div>
 
-        <div className="card">
-          <h3>Revenue Growth</h3>
-          <p>{revenueData.revenueGrowth}%</p>
+        <div className="revenue-card">
+          <h3>Outstanding Balance</h3>
+          <p>₹ {revenue.outstanding_balance}</p>
+        </div>
+
+        <div className="revenue-card">
+          <h3>Commission Revenue</h3>
+          <p>₹ {revenue.commission_revenue}</p>
+        </div>
+
+        <div className="revenue-card">
+          <h3>Penalty Revenue</h3>
+          <p>₹ {revenue.penalty_revenue}</p>
+        </div>
+
+        <div className="revenue-card total">
+          <h3>Total Admin Revenue</h3>
+          <p>₹ {revenue.total_admin_revenue}</p>
         </div>
 
       </div>
-
-      <div className="chart-box">
-        <h2>Revenue Trends</h2>
-        <p>Revenue data loaded from backend API.</p>
-      </div>
-
     </div>
   );
 }
+
+export default RevenueAnalytics;

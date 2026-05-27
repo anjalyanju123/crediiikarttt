@@ -1,192 +1,196 @@
-/* =========================
-   PAGE LAYOUT
-========================= */
+/* ================= PAGE LAYOUT ================= */
 
 .shopkeepers-page {
   display: flex;
   min-height: 100vh;
-  background: #f4f6fb;
-  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(to right, #f8fafc, #eef2ff);
+  font-family: "Poppins", sans-serif;
 }
 
-/* MAIN CONTAINER */
 .shopkeepers-container {
   flex: 1;
-  margin-left: 270px;
-  padding: 30px;
+  padding: 35px;
+  overflow-x: auto;
 }
 
-/* TITLE */
+/* ================= TITLE ================= */
+
 .shopkeepers-container h1 {
-  font-size: 26px;
+  font-size: 34px;
   font-weight: 700;
-  margin-bottom: 20px;
   color: #1e293b;
+  margin-bottom: 25px;
+  letter-spacing: 0.5px;
 }
 
-/* =========================
-   ADD / EDIT FORM
-========================= */
+/* ================= TOTAL CARD ================= */
 
-.add-box {
-  background: #ffffff;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-.add-box h3 {
-  margin-bottom: 12px;
-  color: #1e293b;
-}
-
-.add-form {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.add-form input {
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  outline: none;
-  font-size: 14px;
-  min-width: 180px;
-}
-
-/* =========================
-   SEARCH BAR
-========================= */
-
-.filters {
-  margin-bottom: 15px;
-}
-
-.search-bar {
-  width: 250px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  outline: none;
-  font-size: 14px;
-}
-
-/* =========================
-   HEADER ROW
-========================= */
-
-.shopkeepers-header {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+.customer-count-card {
+  width: 260px;
   background: linear-gradient(135deg, #a855f7, #7c3aed);
   color: white;
-  padding: 12px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
+  padding: 28px;
+  border-radius: 22px;
+  margin-bottom: 35px;
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+  transition: all 0.3s ease;
 }
 
-/* =========================
-   DATA ROW
-========================= */
+.customer-count-card:hover {
+  transform: translateY(-6px);
+}
 
-.shopkeeper-row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  padding: 12px;
+.customer-count-card h2 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  opacity: 0.9;
+}
+
+.customer-count-card p {
+  font-size: 46px;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* ================= TABLE ================= */
+
+.customer-table {
   background: white;
-  margin-top: 8px;
-  border-radius: 8px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+/* ================= HEADER ================= */
+
+.customer-header {
+  display: grid;
+  grid-template-columns: 80px 1.2fr 1.7fr 1.2fr 1fr;
+  background: #04337f;
+  color: white;
+  padding: 18px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* ================= ROW ================= */
+
+.customer-row {
+  display: grid;
+  grid-template-columns: 80px 1.2fr 1.7fr 1.2fr 1fr;
   align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.25s ease;
+  background: white;
+}
+
+.customer-row:last-child {
+  border-bottom: none;
+}
+
+.customer-row:hover {
+  background: #f8fafc;
+  transform: scale(1.005);
+}
+
+/* ================= TEXT ================= */
+
+.customer-row div {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.customer-header div {
+  word-break: break-word;
+}
+
+/* ================= USERNAME ================= */
+
+.customer-row div:nth-child(2) {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* ================= EMAIL ================= */
+
+.customer-row div:nth-child(3) {
+  color: #475569;
   font-size: 13px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  transition: 0.2s ease;
 }
 
-.shopkeeper-row:hover {
-  transform: translateY(-1px);
-  background: #f9fafb;
-}
-
-/* =========================
-   STATUS BADGES
-========================= */
+/* ================= STATUS ================= */
 
 .status-approved {
-  background: rgba(34,197,94,0.12);
-  color: #16a34a;
-  padding: 4px 10px;
+  background: #dcfce7;
+  color: #15803d;
+  padding: 8px 16px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
+  display: inline-block;
+  min-width: 85px;
+  text-align: center;
 }
 
 .status-rejected {
-  background: rgba(239,68,68,0.12);
+  background: #fee2e2;
   color: #dc2626;
-  padding: 4px 10px;
+  padding: 8px 16px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
+  display: inline-block;
+  min-width: 85px;
+  text-align: center;
 }
 
-/* =========================
-   BUTTONS
-========================= */
+/* ================= SCROLLBAR ================= */
 
-button {
-  border: none;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 6px 10px;
-  border-radius: 8px;
-  transition: 0.2s ease;
+.shopkeepers-container::-webkit-scrollbar {
+  height: 8px;
 }
 
-/* ADD / UPDATE BUTTON */
-.approve-btn {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: white;
+.shopkeepers-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
 }
 
-.approve-btn:hover {
-  background: linear-gradient(135deg, #16a34a, #15803d);
-}
+/* ================= RESPONSIVE ================= */
 
-/* DELETE / CANCEL BUTTON */
-.reject-btn {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-}
+@media (max-width: 900px) {
 
-.reject-btn:hover {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
-}
+  .customer-header,
+  .customer-row {
+    grid-template-columns: 70px 1fr 1.5fr 1fr 1fr;
+    font-size: 13px;
+  }
 
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 768px) {
   .shopkeepers-container {
-    margin-left: 0;
-    padding: 15px;
+    padding: 20px;
   }
 
-  .shopkeepers-header,
-  .shopkeeper-row {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .add-form {
-    flex-direction: column;
-  }
-
-  .search-bar {
+  .customer-count-card {
     width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+
+  .customer-table {
+    min-width: 700px;
+  }
+
+  .shopkeepers-container h1 {
+    font-size: 28px;
+  }
+
+  .customer-count-card p {
+    font-size: 38px;
   }
 }

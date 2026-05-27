@@ -1,153 +1,156 @@
+/* ================= GLOBAL ================= */
 
-/* =========================
-   PAGE LAYOUT
-========================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+
+body {
+  color: #f8fafc;
+}
+
+/* ================= PAGE ================= */
 
 .payment-page {
-  margin-left: 270px;
-  padding: 30px;
-  min-height: 100vh;
-  background: #f4f6fb;
-  font-family: "Segoe UI", sans-serif;
+  max-width: 900px;
+  margin: auto;
+  padding: 40px 20px 80px;
+  color: white;
 }
 
-/* =========================
-   TITLE
-========================= */
+/* TITLE */
 
 .payment-page h2 {
-  font-size: 26px;
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 20px;
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 25px;
+  font-weight: 800;
 }
 
-/* =========================
-   PAYMENT SUMMARY CARD
-========================= */
+/* ================= SUMMARY BOX ================= */
 
 .payment-summary {
-  background: white;
-  padding: 20px;
+  background: #111827;
+  border: 1px solid #1f2937;
   border-radius: 14px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+  padding: 22px;
   margin-bottom: 20px;
-  border-left: 5px solid #2563eb;
 }
 
 .payment-summary h3 {
-  margin: 0;
-  font-size: 18px;
-  color: #16a34a;
+  font-size: 1.4rem;
+  color: #22c55e;
+  margin-bottom: 12px;
 }
 
 .payment-summary p {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #475569;
+  margin: 8px 0;
+  color: #cbd5e1;
+  font-size: 0.95rem;
 }
 
 .payment-summary b {
-  color: #2563eb;
-  font-size: 14px;
+  color: #ffffff;
 }
 
-/* =========================
-   ORDER PREVIEW BOX
-========================= */
+/* ================= CREDIT HIGHLIGHT ================= */
+
+.payment-summary b[style*="#38bdf8"] {
+  color: #38bdf8 !important;
+}
+
+/* ================= INPUT ================= */
+
+.payment-summary input[type="date"] {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  border: 1px solid #1f2937;
+  background: #0b1220;
+  color: #f8fafc;
+
+  outline: none;
+  width: 100%;
+  max-width: 300px;
+}
+
+.payment-summary input[type="date"]:focus {
+  border-color: #3b82f6;
+}
+
+/* ================= ORDER PREVIEW ================= */
 
 .order-preview {
-  background: white;
-  padding: 15px;
-  border-radius: 14px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
-  margin-bottom: 20px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* EACH ITEM */
+/* ITEM ROW */
+
 .preview-item {
   display: flex;
   justify-content: space-between;
-  padding: 12px 8px;
-  border-bottom: 1px solid #e2e8f0;
-  font-size: 14px;
-  transition: 0.2s;
+  align-items: center;
+
+  padding: 14px 16px;
+  border-radius: 12px;
+
+  background: #111827;
+  border: 1px solid #1f2937;
+
+  font-size: 0.95rem;
+  color: #cbd5e1;
 }
 
-.preview-item:hover {
-  background: #f8fafc;
-  border-radius: 8px;
-}
-
-.preview-item:last-child {
-  border-bottom: none;
-}
-
-/* PRODUCT NAME */
 .preview-item p:first-child {
+  color: #ffffff;
   font-weight: 600;
-  color: #0f172a;
 }
 
-/* PRICE */
-.preview-item p:last-child {
-  color: #64748b;
-  font-weight: 500;
-}
-
-/* =========================
-   CONFIRM BUTTON
-========================= */
+/* ================= BUTTON ================= */
 
 .checkout-btn {
   width: 100%;
-  padding: 12px;
+  margin-top: 25px;
+  padding: 14px;
+
   border: none;
   border-radius: 12px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  color: white;
+
   background: linear-gradient(135deg, #22c55e, #16a34a);
-  transition: 0.2s ease;
-  box-shadow: 0 3px 8px rgba(34, 197, 94, 0.3);
+  color: white;
+
+  font-size: 1rem;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: 0.25s ease;
+
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.25);
 }
 
 .checkout-btn:hover {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, #16a34a, #15803d);
+  box-shadow: 0 15px 30px rgba(34, 197, 94, 0.35);
 }
 
-/* =========================
-   LOADING STATE
-========================= */
+.checkout-btn:active {
+  transform: scale(0.98);
+}
+
+/* ================= BACK BUTTON SPACING ================= */
+
+.payment-page > button {
+  margin-bottom: 10px;
+}
+
+/* ================= LOADING ================= */
 
 .payment-page p {
-  color: #64748b;
-  font-size: 14px;
-}
-
-/* =========================
-   DASHBOARD SPACE FIX
-========================= */
-
-.payment-page {
-  display: flex;
-  flex-direction: column;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 768px) {
-  .payment-page {
-    margin-left: 0;
-    padding: 15px;
-  }
-
-  .preview-item {
-    flex-direction: column;
-    gap: 5px;
-  }
+  color: #94a3b8;
 }

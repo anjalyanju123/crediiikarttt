@@ -1,109 +1,111 @@
 /* =========================
    FULL PAGE CONTAINER
 ========================= */
-.login-container {
+.customer-container {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
 
-  background: linear-gradient(135deg, #667eea, #764ba2);
   padding: 20px;
   box-sizing: border-box;
+
+  background: linear-gradient(135deg, #74ebd5, #9face6);
 }
 
 /* =========================
-   HEADER LINKS BAR
+   CARD
 ========================= */
-.login_header {
-  width: 350px;
-  max-width: 100%;
-  height: 45px;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 25px;
-
-  background-color: #344baf;
-  border-radius: 10px 10px 0 0;
-}
-
-.login_header a {
-  color: white;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.login_header a:hover {
-  text-decoration: underline;
-}
-
-/* =========================
-   LOGIN CARD
-========================= */
-.login-card {
-  width: 350px;
+.customer-card {
+  width: 380px;
   max-width: 100%;
 
-  background: white;
+  background: #ffffff;
   padding: 25px;
-  border-radius: 0 0 12px 12px;
+  border-radius: 14px;
 
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
 /* TITLE */
-.login-card h2 {
-  margin-bottom: 20px;
+.customer-card h2 {
+  margin-bottom: 18px;
   color: #333;
 }
 
 /* =========================
    FORM
 ========================= */
-.login-card form {
+.customer-card form {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-/* INPUTS */
-.login-card input {
+/* =========================
+   INPUTS + TEXTAREA
+========================= */
+.customer-card input,
+.customer-card textarea {
+  width: 100%;
   padding: 10px;
-  border-radius: 8px;
+
   border: 1px solid #ccc;
+  border-radius: 8px;
+
   font-size: 14px;
   outline: none;
   transition: 0.2s;
+
+  box-sizing: border-box;
 }
 
-.login-card input:focus {
+.customer-card input:focus,
+.customer-card textarea:focus {
   border-color: #4a6cf7;
   box-shadow: 0 0 4px rgba(74, 108, 247, 0.3);
 }
 
-/* BUTTON */
-.login-card button {
+/* TEXTAREA FIX */
+.customer-card textarea {
+  resize: none;
+  height: 80px;
+}
+
+/* =========================
+   BUTTON
+========================= */
+.customer-card button {
   padding: 10px;
   background: #4a6cf7;
   color: white;
+
   border: none;
   border-radius: 8px;
-  cursor: pointer;
+
   font-weight: bold;
+  cursor: pointer;
+
   transition: 0.3s;
 }
 
-.login-card button:hover {
+.customer-card button:hover {
   background: #2f4fe0;
 }
 
 /* =========================
-   MESSAGES
+   ERROR TEXT
+========================= */
+.error {
+  color: red;
+  font-size: 12px;
+  text-align: left;
+  margin-top: -6px;
+}
+
+/* =========================
+   SUCCESS / MESSAGE
 ========================= */
 .message {
   margin-top: 10px;
@@ -111,28 +113,20 @@
   color: green;
 }
 
-/* FIXED ERROR STYLE (your old one was wrong) */
-.error {
-  font-size: 12px;
-  color: red;
-  text-align: left;
-}
-
 /* =========================
-   REGISTER LINK
+   FOOTER LINK
 ========================= */
-.register-link {
+.cusregister_last_p {
   margin-top: 15px;
   font-size: 14px;
-  color: black;
 }
 
-.register-link a {
+.cusregister_last_p a {
   color: #4a6cf7;
   font-weight: bold;
   text-decoration: none;
 }
 
-.register-link a:hover {
+.cusregister_last_p a:hover {
   text-decoration: underline;
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
 import "./Order.css";
-import ShopDashboard from "./ShopDashboard";
+import Backbutton from "../auth/Backbutton";
 
 function Order() {
   const [orders, setOrders] = useState([]);
@@ -66,7 +66,7 @@ function Order() {
 
   return (
     <div className="orders-container">
-      <ShopDashboard />
+     <Backbutton />
       <h2>Shopkeeper - Customer Orders</h2>
 
       <div className="filters">
@@ -111,6 +111,7 @@ function Order() {
               <p><b>Amount:</b> ₹{o.amount}</p>
               <p><b>Status:</b> {o.status}</p>
               <p><b>Payment:</b> {o.payment_method}</p>
+              <p><b>Due Date:</b> <span style={{ color: "#34d399", fontWeight: "bold" }}>{o.due_date ? new Date(o.due_date).toLocaleDateString() : "Not Set"}</span></p>
 
               {/* SHOW ONLY FOR CREDIT ORDERS */}
               {o.payment_method === "credit" && o.status !== "paid" && (

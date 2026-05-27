@@ -1,0 +1,132 @@
+/* =========================
+   FULL PAGE WRAPPER
+========================= */
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+
+  background: linear-gradient(135deg, #74ebd5, #9face6);
+  box-sizing: border-box;
+}
+
+/* =========================
+   CARD
+========================= */
+.register-card {
+  width: 420px;
+  max-width: 100%;
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+/* TITLE */
+.register-card h2 {
+  margin-bottom: 18px;
+  color: #333;
+}
+
+/* =========================
+   FORM LAYOUT
+========================= */
+.register-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* =========================
+   INPUTS
+========================= */
+.register-card input,
+.register-card textarea,
+.register-card select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s;
+  box-sizing: border-box;
+}
+
+.register-card input:focus,
+.register-card textarea:focus,
+.register-card select:focus {
+  border-color: #4a6cf7;
+  box-shadow: 0 0 4px rgba(74, 108, 247, 0.3);
+}
+
+/* TEXTAREA */
+.register-card textarea {
+  resize: none;
+  height: 80px;
+}
+
+/* =========================
+   BUTTON
+========================= */
+.register-card button {
+  padding: 10px;
+  background: #4a6cf7;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.register-card button:hover {
+  background: #2f4fe0;
+}
+
+/* =========================
+   ERROR + MESSAGE
+========================= */
+.error {
+  color: red;
+  font-size: 12px;
+  text-align: left;
+  margin-top: -6px;
+}
+
+.message {
+  margin-top: 10px;
+  font-size: 14px;
+  color: green;
+}
+
+/* =========================
+   LINK TEXT
+========================= */
+.register-card p {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.register-card a {
+  color: #4a6cf7;
+  text-decoration: none;
+}
+
+.register-card a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   FILE INPUT FIX
+========================= */
+.register-card input[type="file"] {
+  padding: 6px;
+  background: #f8f9fa;
+}
+.cusregister_last_p{
+    color: black;
+}

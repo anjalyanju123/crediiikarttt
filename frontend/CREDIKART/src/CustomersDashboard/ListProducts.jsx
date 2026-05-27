@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
-import CustDashboard from "./CustDashboard";
 import "./ListProducts.css";
+import Backbutton from "../auth/Backbutton";
+import { useNavigate } from "react-router-dom";
 
 function ListProducts() {
     const [products, setProducts] = useState([]);
@@ -10,23 +11,31 @@ function ListProducts() {
     const [category, setCategory] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
     const [inStock, setInStock] = useState(false);
+    const navigate = useNavigate()
+    const [loading, setLoading] = useState(true);
 
     // Fetch products
     const fetchProducts = async () => {
         try {
-            const res = await api.get("/AllProducts/", {
-                params: {
-                    search,
-                    category,
-                    max_price: maxPrice,
-                    in_stock: inStock,
-                },
-            });
-            setProducts(res.data);
-        } catch (err) {
-            console.log(err);
-        }
-    };
+            setLoading(true);
+
+        const res = await api.get("/AllProducts/", {
+            params: {
+                search,
+                category,
+                max_price: maxPrice,
+                in_stock: inStock,
+            },
+        });
+
+        setProducts(res.data);
+
+    } catch (err) {
+        console.log(err);
+    } finally {
+        setLoading(false);
+    }
+};
 
     useEffect(() => {
         fetchProducts();
@@ -50,7 +59,7 @@ function ListProducts() {
 
     return (
         <div className="container">
-            <CustDashboard />
+            <Backbutton />
 
             <div className="main-content">
                 <h2>Products</h2>
@@ -65,13 +74,26 @@ function ListProducts() {
 
                     <select value={category} onChange={(e) => setCategory(e.target.value)}>
                         <option value="">All Categories</option>
-                        <option value="electronics">Electronics</option>
-                        <option value="fashion">Fashion</option>
+
+                        <option value="Grocery">Grocery</option>
+                        <option value="Bakery">Bakery</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Medical Store">Medical Store</option>
+                        <option value="Textile">Textile</option>
+                        <option value="Footwear">Footwear</option>
+                        <option value="Jewellery">Jewellery</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Stationery">Stationery</option>
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Supermarket">Supermarket</option>
+                        <option value="Mobile Shop">Mobile Shop</option>
+                        <option value="Hardware">Hardware</option>
+                        <option value="Beauty & Cosmetics">Beauty & Cosmetics</option>
                     </select>
 
                     <input
                         type="number"
-                        placeholder="Min Price"
+                        placeholder="Price Below"
                         value={maxPrice}
                         onChange={(e) => setMaxPrice(e.target.value)}
                     />
@@ -97,9 +119,20 @@ function ListProducts() {
                                 {p.is_available ? "In Stock" : "Out of Stock"}
                             </h4>
 
-                            <button onClick={() => addToCart(p)}>
-                                Add to Cart
-                            </button>
+                            <div className="product-buttons">
+
+                                <button onClick={() => addToCart(p)}>
+                                    Add to Cart
+                                </button>
+
+                                <button
+                                    className="view-cart-btn"
+                                    onClick={() => navigate("/cart")}
+                                >
+                                    View Cart
+                                </button>
+
+                            </div>
                         </div>
                     ))}
                 </div>

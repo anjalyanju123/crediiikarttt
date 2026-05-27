@@ -1,39 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { Navigate, NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import "../Adminpages/Sidebar.css";
-import api from '../api/axios'
 
 function ShopDashboard() {
     const navigate = useNavigate();
-    const [username, setUsername] = useState("");
-
-    useEffect(()=>{fetchCurrentUser()},[]);
-
-    const fetchCurrentUser = async () => {
-        try {
-
-            const response = await api.get("/current_user/");
-
-            setUsername(response.data.username);
-
-        } catch (error) {
-
-            console.log(error);
-        }
-    };
-
-    const handleLogout = () => {
-
-        // Remove tokens
+        const [user, setUser] = useState(() => {
+            return JSON.parse(localStorage.getItem("user")) || null;
+        });
+        const handleLogout = () => {
+    
+            // Completely clear all stored state (tokens, cart, checkout)
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
-
-        // Redirect to login
-        navigate("/");
-    };
+        localStorage.removeItem("user"); 
+    
+            // Redirect to login
+            navigate("/");
+    
+        };
     return (
         <div className="sidebar">
-            <h2 className="sidebar-title">Welcome, {username}</h2>
+            <h2 className="sidebar-title">Welcome, {user?.username}</h2>
 
             <nav className="sidebar-nav">
                 <NavLink

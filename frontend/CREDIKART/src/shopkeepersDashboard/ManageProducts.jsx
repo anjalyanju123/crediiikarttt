@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
-import Dashboard from "./ShopDashboard";
 import "./ManageProducts.css";
+import Backbutton from "../auth/Backbutton";
 
 function ManageProducts() {
 
@@ -89,7 +89,7 @@ function ManageProducts() {
           }
         );
 
-        alert("Product Updated");
+        alert("Product Updated ! check below");
 
       } else {
 
@@ -103,7 +103,7 @@ function ManageProducts() {
           }
         );
 
-        alert("Product Added");
+        alert("Product Added ! check below");
       }
 
       // RESET FORM
@@ -167,7 +167,7 @@ function ManageProducts() {
 
     <div className="products-page">
 
-      <Dashboard />
+      <Backbutton />
 
       <div className="products-container">
 
