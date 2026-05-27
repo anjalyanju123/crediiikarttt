@@ -95,16 +95,6 @@ RAZORPAY_KEY_SECRET = "Vn72aLVlAAOW5AS4N16XCdRC"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-<<<<<<< HEAD
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'credikartdb2',
-        'USER': 'postgres',
-        'PASSWORD': 'Anjaly',
-        'HOST': 'localhost',
-        'PORT': '5432',
-=======
 import socket
 
 def is_postgres_running(host='localhost', port=5432):
@@ -131,7 +121,6 @@ else:
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
->>>>>>> 07e13b0e231d8233d27740c1526fea1484819c7d
     }
 
 
