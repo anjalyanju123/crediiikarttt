@@ -501,12 +501,18 @@ def customer_list(request):
     serializer = CustomerSerializer(customers, many=True)
     return Response(serializer.data)
 
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def place_order(request):
     try:
+        print("\n========== PLACE ORDER API CALLED ==========")
+
         user = request.user
         data = request.data
+
+        print("Authenticated User:", user)
+        print("Request Data:", data)
 
         payment_method = data.get("payment_method")
         total_amount = data.get("total_amount")
@@ -515,12 +521,26 @@ def place_order(request):
         repayment_schedule = data.get("repayment_schedule")
         custom_due_date = data.get("custom_due_date")
 
+        print("Payment Method:", payment_method)
+        print("Total Amount:", total_amount)
+        print("Repayment Schedule:", repayment_schedule)
+        print("Custom Due Date:", custom_due_date)
+        print("Items Received:", items)
+
         # ================= CHECK OVERDUE =================
-        if Order.objects.filter(
+        print("\nChecking overdue credit payments...")
+
+        overdue_exists = Order.objects.filter(
             user=user,
             payment_method="credit",
             status="overdue"
-        ).exists():
+        ).exists()
+
+        print("Overdue Exists:", overdue_exists)
+
+        if overdue_exists:
+            print("User has overdue payments. Blocking purchase.")
+
             return Response(
                 {"error": "You have overdue payments. Clear dues before purchasing."},
                 status=403
@@ -529,45 +549,82 @@ def place_order(request):
         # ================= CALCULATE DUE DATE =================
         due_date = None
 
+        print("\nCalculating due date...")
+
         if payment_method == "credit":
+
             if repayment_schedule == "weekly":
                 due_date = timezone.now().date() + timedelta(days=7)
+                print("Weekly repayment selected")
 
             elif repayment_schedule == "2_weeks":
                 due_date = timezone.now().date() + timedelta(days=14)
+                print("2 weeks repayment selected")
 
             elif repayment_schedule == "3_weeks":
                 due_date = timezone.now().date() + timedelta(days=21)
+                print("3 weeks repayment selected")
 
             elif repayment_schedule == "monthly":
                 due_date = timezone.now().date() + timedelta(days=30)
+                print("Monthly repayment selected")
 
             elif repayment_schedule == "custom":
+                print("Custom repayment selected")
+
                 if not custom_due_date:
+                    print("Custom due date missing!")
+
                     return Response(
                         {"error": "Custom due date is required"},
                         status=400
                     )
-                due_date = datetime.strptime(custom_due_date, "%Y-%m-%d").date()
+
+                due_date = datetime.strptime(
+                    custom_due_date,
+                    "%Y-%m-%d"
+                ).date()
 
             else:
+                print("Default repayment selected (7 days)")
                 due_date = timezone.now().date() + timedelta(days=7)
 
+        print("Calculated Due Date:", due_date)
+
         # ================= CREATE ORDER =================
+        print("\nCreating Order...")
+
         order = Order.objects.create(
             user=user,
             total_amount=total_amount,
             payment_method=payment_method,
+            repayment_schedule=repayment_schedule,
             status="credit" if payment_method == "credit" else "paid",
             due_date=due_date
         )
 
+        print("Order Created Successfully")
+        print("Order ID:", order.id)
+        print("Order Status:", order.status)
+
         # ================= ORDER ITEMS =================
+        print("\nProcessing Order Items...")
+
         for item in items:
+
+            print("\nCurrent Item:", item)
+
             product = get_object_or_404(Product, id=item["product"])
+
+            print("Product Found:", product.name)
+            print("Current Stock:", product.stock)
+            print("Requested Quantity:", item["quantity"])
 
             # stock check
             if product.stock < item["quantity"]:
+
+                print("Insufficient stock for:", product.name)
+
                 return Response(
                     {"error": f"{product.name} out of stock"},
                     status=400
@@ -580,17 +637,27 @@ def place_order(request):
                 price=item["price"]
             )
 
+            print("OrderItem created successfully")
+
             # reduce stock
             product.stock -= item["quantity"]
+
+            print("Updated Stock:", product.stock)
 
             if product.stock <= 0:
                 product.stock = 0
                 product.is_available = False
 
+                print(f"{product.name} is now unavailable")
+
             product.save()
 
+            print("Product saved successfully")
+
         # ================= TRANSACTION =================
-        Transaction.objects.create(
+        print("\nCreating Transaction...")
+
+        transaction = Transaction.objects.create(
             user=user,
             order=order,
             transaction_type="credit" if payment_method == "credit" else "payment",
@@ -598,13 +665,22 @@ def place_order(request):
             description="Credit Purchase" if payment_method == "credit" else "Ready Payment"
         )
 
+        print("Transaction Created:", transaction.id)
+
         # ================= NOTIFICATION =================
+        print("\nCreating Notification...")
+
         if payment_method == "credit":
-            Notification.objects.create(
+
+            notification = Notification.objects.create(
                 title="Credit Purchase Created",
                 message=f"Your payment of ₹{total_amount} is due on {due_date}",
                 role="customer"
             )
+
+            print("Notification Created:", notification.id)
+
+        print("\n========== ORDER PLACED SUCCESSFULLY ==========")
 
         return Response({
             "message": "Order placed successfully",
@@ -613,10 +689,131 @@ def place_order(request):
         }, status=201)
 
     except Exception as e:
+
+        print("\n========== ERROR OCCURRED ==========")
+        print("Error:", str(e))
+
         return Response(
             {"error": str(e)},
             status=500
         )
+
+# @api_view(["POST"])
+# @permission_classes([IsAuthenticated])
+# def place_order(request):
+#     try:
+#         user = request.user
+#         data = request.data
+#         payment_method = data.get("payment_method")
+#         total_amount = data.get("total_amount")
+#         items = data.get("items", [])
+
+#         repayment_schedule = data.get("repayment_schedule")
+#         custom_due_date = data.get("custom_due_date")
+
+#         # ================= CHECK OVERDUE =================
+#         if Order.objects.filter(
+#             user=user,
+#             payment_method="credit",
+#             status="overdue"
+#         ).exists():
+#             return Response(
+#                 {"error": "You have overdue payments. Clear dues before purchasing."},
+#                 status=403
+#             )
+
+#         # ================= CALCULATE DUE DATE =================
+#         due_date = None
+
+#         if payment_method == "credit":
+#             if repayment_schedule == "weekly":
+#                 due_date = timezone.now().date() + timedelta(days=7)
+
+#             elif repayment_schedule == "2_weeks":
+#                 due_date = timezone.now().date() + timedelta(days=14)
+
+#             elif repayment_schedule == "3_weeks":
+#                 due_date = timezone.now().date() + timedelta(days=21)
+
+#             elif repayment_schedule == "monthly":
+#                 due_date = timezone.now().date() + timedelta(days=30)
+
+#             elif repayment_schedule == "custom":
+#                 if not custom_due_date:
+#                     return Response(
+#                         {"error": "Custom due date is required"},
+#                         status=400
+#                     )
+#                 due_date = datetime.strptime(custom_due_date, "%Y-%m-%d").date()
+
+#             else:
+#                 due_date = timezone.now().date() + timedelta(days=7)
+
+#         # ================= CREATE ORDER =================
+#         order = Order.objects.create(
+#             user=user,
+#             total_amount=total_amount,
+#             payment_method=payment_method,
+#             repayment_schedule=repayment_schedule,
+#             status="credit" if payment_method == "credit" else "paid",
+#             due_date=due_date
+#         )
+#         print(user,total_amount,payment_method,status,due_date)
+#         # ================= ORDER ITEMS =================
+#         for item in items:
+#             product = get_object_or_404(Product, id=item["product"])
+
+#             # stock check
+#             if product.stock < item["quantity"]:
+#                 return Response(
+#                     {"error": f"{product.name} out of stock"},
+#                     status=400
+#                 )
+
+#             OrderItem.objects.create(
+#                 order=order,
+#                 product=product,
+#                 quantity=item["quantity"],
+#                 price=item["price"]
+#             )
+
+#             # reduce stock
+#             product.stock -= item["quantity"]
+
+#             if product.stock <= 0:
+#                 product.stock = 0
+#                 product.is_available = False
+
+#             product.save()
+
+#         # ================= TRANSACTION =================
+#         Transaction.objects.create(
+#             user=user,
+#             order=order,
+#             transaction_type="credit" if payment_method == "credit" else "payment",
+#             amount=total_amount,
+#             description="Credit Purchase" if payment_method == "credit" else "Ready Payment"
+#         )
+
+#         # ================= NOTIFICATION =================
+#         if payment_method == "credit":
+#             Notification.objects.create(
+#                 title="Credit Purchase Created",
+#                 message=f"Your payment of ₹{total_amount} is due on {due_date}",
+#                 role="customer"
+#             )
+
+#         return Response({
+#             "message": "Order placed successfully",
+#             "order_id": order.id,
+#             "due_date": due_date
+#         }, status=201)
+
+#     except Exception as e:
+#         return Response(
+#             {"error": str(e)},
+#             status=500
+#         )
     
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])

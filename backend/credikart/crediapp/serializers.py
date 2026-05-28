@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Notification, Product, Order, OrderItem, Transaction
+from .models import Notification, Product, Order, OrderItem, Transaction,Cart
 import re
 
 User = get_user_model()
@@ -219,7 +219,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ["id", "user", "username", "total_amount", "payment_method", "status", "due_date", "created_at", "items"]
+        fields = ["id", "user", "username", "total_amount", "payment_method",'repayment_schedule', "status", "due_date", "created_at", "items"]
         read_only_fields = ["user","total_amount","status","created_at"]
 
 
@@ -230,3 +230,21 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = "__all__"
+
+class CartSerializer(serializers.ModelSerializer):
+
+    product_name = serializers.CharField(source="product.name",read_only=True)
+
+    product_image = serializers.ImageField(source="product.product_image",read_only=True)
+
+    price = serializers.DecimalField(source="product.price",max_digits=10,decimal_places=2,read_only=True
+    )
+
+    shopkeeper = serializers.CharField(
+        source="product.shopkeeper.username",
+        read_only=True
+    )
+
+    class Meta:
+        model = Cart
+        fields = "__all__"       

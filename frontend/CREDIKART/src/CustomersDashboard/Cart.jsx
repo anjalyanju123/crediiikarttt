@@ -8,10 +8,10 @@ function Cart() {
   const [cart, setCart] = useState([]);
 
   const [paymentMethod, setPaymentMethod] =
-    useState("ready");
+    useState("");
 
   const [repaymentSchedule, setRepaymentSchedule] =
-    useState("weekly");
+    useState("");
 
   const [customDate, setCustomDate] =
     useState("");

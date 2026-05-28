@@ -60,6 +60,7 @@ function Payment() {
 
       alert(res.data.message || "Order placed successfully!");
 
+
       // redirect
       if (data.paymentMethod === "credit") {
         navigate("/credit-list");
@@ -73,6 +74,7 @@ function Payment() {
         alert("You have overdue credit payments");
         navigate("/credit-list");
       } else {
+        console.log(err.response)
         alert(err.response?.data?.error || "Payment failed");
       }
     }
