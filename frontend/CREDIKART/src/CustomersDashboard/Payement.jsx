@@ -2,182 +2,212 @@ import React, { useEffect, useState } from "react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 import Backbutton from "../auth/Backbutton";
-import './Payment.css';
+import "./Payment.css";
 
 function Payment() {
+
   const [data, setData] = useState(null);
-  const [customDate, setCustomDate] = useState("");
+  const [cartItems, setCartItems] = useState([]);
+
   const navigate = useNavigate();
 
-  // ================= LOAD CHECKOUT =================
+  // ================= LOAD DATA =================
+
   useEffect(() => {
-    const checkoutData = JSON.parse(localStorage.getItem("checkout"));
-    setData(checkoutData);
+
+    fetchCheckout();
+    fetchCart();
+
   }, []);
 
-  // ================= PLACE ORDER =================
-  const placeOrder = async () => {
+  const fetchCheckout = async () => {
+
     try {
-      if (!data) return;
 
-      // validation for custom date
-      if (
-        data.paymentMethod === "credit" &&
-        data.repaymentSchedule === "custom" &&
-        !customDate
-      ) {
-        alert("Please select custom due date");
-        return;
-      }
+      const res = await api.get("/get_checkout/");
 
-      const payload = {
-        payment_method: data.paymentMethod,
-        total_amount: data.total,
+      setData(res.data);
 
-        repayment_schedule:
-          data.paymentMethod === "credit"
-            ? data.repaymentSchedule
-            : null,
-
-        custom_due_date:
-          data.paymentMethod === "credit" &&
-          data.repaymentSchedule === "custom"
-            ? customDate
-            : null,
-
-        items: data.cart.map((item) => ({
-          product: item.id,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-      };
-
-      const res = await api.post("/place_order/", payload);
-
-      // clear storage
-      localStorage.removeItem("cart");
-      localStorage.removeItem("checkout");
-
-      alert(res.data.message || "Order placed successfully!");
-
-
-      // redirect
-      if (data.paymentMethod === "credit") {
-        navigate("/credit-list");
-      } else {
-        navigate("/customer-transactions");
-      }
     } catch (err) {
+
       console.log(err);
 
-      if (err.response?.status === 403) {
-        alert("You have overdue credit payments");
-        navigate("/credit-list");
-      } else {
-        console.log(err.response)
-        alert(err.response?.data?.error || "Payment failed");
-      }
     }
   };
 
-  // ================= LOADING =================
-  if (!data) return <p>Loading payment...</p>;
+  const fetchCart = async () => {
 
-  // ================= AUTO DUE DATE =================
-  const calculateDueDate = (schedule) => {
-    const today = new Date();
+    try {
 
-    if (schedule === "weekly") today.setDate(today.getDate() + 7);
-    else if (schedule === "2_weeks") today.setDate(today.getDate() + 14);
-    else if (schedule === "3_weeks") today.setDate(today.getDate() + 21);
-    else if (schedule === "monthly") today.setDate(today.getDate() + 30);
+      const res = await api.get("/cart/");
 
-    return today.toISOString().split("T")[0];
+      setCartItems(res.data);
+
+    } catch (err) {
+
+      console.log(err);
+
+    }
   };
 
+  // ================= PLACE ORDER =================
+
+const placeOrder = async () => {
+  try {
+    const payload = {
+      payment_method: data.payment_method,
+      total_amount: data.total_amount,
+      repayment_schedule: data.repayment_schedule,
+      due_date: data.due_date,
+      items: cartItems.map(i => ({
+        product: i.product,
+        quantity: i.quantity,
+        price: i.price,
+      })),
+    };
+
+    // 1. CREATE ORDER FIRST (IMPORTANT)
+    const orderRes = await api.post("/place_order/", payload);
+    const orderId = orderRes.data.order_id;
+
+    alert(orderRes.data.message);
+
+    // 2. CREDIT FLOW
+    if (data.payment_method === "credit") {
+      navigate("/credit-list");
+      return;
+    }
+
+    // 3. READY PAYMENT → Razorpay
+    const res = await api.post(`/create_razorpay_order/${orderId}/`);
+
+    const options = {
+      key: res.data.key,
+      amount: res.data.amount,
+      currency: res.data.currency,
+      name: "CrediKart",
+      description: "Ready Payment",
+
+      order_id: res.data.order_id,
+
+      handler: async function (response) {
+        try {
+          // verify payment
+          await api.post(`/verify_payment/${orderId}/`, {
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+          });
+
+          alert("Payment Successful!");
+          navigate("/customer-transactions");
+
+        } catch (err) {
+          console.log(err);
+          alert("Payment verification failed");
+        }
+      },
+
+      theme: { color: "#22c55e" },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+
+  } catch (err) {
+    console.log(err);
+    alert(err.response?.data?.error || "Payment failed");
+  }
+};
+
+  // ================= LOADING =================
+
+  if (!data) {
+
+    return <h2>Loading...</h2>;
+
+  }
+
   return (
+
     <div>
+
       <Backbutton />
 
       <div className="payment-page">
+
         <h2>Payment Page</h2>
 
         {/* SUMMARY */}
+
         <div className="payment-summary">
-          <h3>Total: ₹{data.total}</h3>
+
+          <h3>Total: ₹{data.total_amount}</h3>
 
           <p>
-            Payment Method:{" "}
+            Payment Method:
+            {" "}
             <b>
-              {data.paymentMethod === "credit"
+              {data.payment_method === "credit"
                 ? "Pay Later (Credit)"
                 : "Ready Payment"}
             </b>
           </p>
 
-          {/* CREDIT INFO */}
-          {data.paymentMethod === "credit" && (
+          {data.payment_method === "credit" && (
+
             <div style={{ marginTop: "10px" }}>
+
               <p>
-                Repayment Schedule:{" "}
+                Repayment Schedule:
+                {" "}
                 <b style={{ color: "#38bdf8" }}>
-                  {data.repaymentSchedule === "weekly" &&
-                    "First Week (7 Days)"}
-                  {data.repaymentSchedule === "2_weeks" &&
-                    "Second Week (14 Days)"}
-                  {data.repaymentSchedule === "3_weeks" &&
-                    "Third Week (21 Days)"}
-                  {data.repaymentSchedule === "monthly" &&
-                    "Monthly (30 Days)"}
-                  {data.repaymentSchedule === "custom" &&
-                    "Custom Due Date"}
+                  {data.repayment_schedule}
                 </b>
               </p>
 
-              {/* AUTO DUE DATE */}
-              {data.repaymentSchedule !== "custom" && (
-                <p>
-                  Due Date:{" "}
-                  <b style={{ color: "#34d399" }}>
-                    {calculateDueDate(data.repaymentSchedule)}
-                  </b>
-                </p>
-              )}
+              <p>
+                Due Date:
+                {" "}
+                <b style={{ color: "#34d399" }}>
+                  {data.due_date}
+                </b>
+              </p>
 
-              {/* CUSTOM DATE */}
-              {data.repaymentSchedule === "custom" && (
-                <div style={{ marginTop: "10px" }}>
-                  <label>Select Due Date</label>
-                  <br />
-                  <input
-                    type="date"
-                    min={new Date().toISOString().split("T")[0]}
-                    value={customDate}
-                    onChange={(e) => setCustomDate(e.target.value)}
-                  />
-                </div>
-              )}
             </div>
+
           )}
+
         </div>
 
-        {/* ITEMS */}
+        {/* CART ITEMS */}
+
         <div className="order-preview">
-          {data.cart.map((item) => (
+
+          {cartItems.map((item) => (
+
             <div key={item.id} className="preview-item">
-              <p>{item.name}</p>
+
+              <p>{item.product_name}</p>
+
               <p>
                 ₹{item.price} × {item.quantity}
               </p>
+
             </div>
+
           ))}
+
         </div>
 
         {/* BUTTON */}
+
         <button className="checkout-btn" onClick={placeOrder}>
           Confirm Order
         </button>
+
       </div>
+
     </div>
   );
 }

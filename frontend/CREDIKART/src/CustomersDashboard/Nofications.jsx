@@ -35,6 +35,7 @@ function Notifications() {
             <span className="time">
               {new Date(n.created_at).toLocaleString()}
             </span>
+            
           </div>
         ))
       )}

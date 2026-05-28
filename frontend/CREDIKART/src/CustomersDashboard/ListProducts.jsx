@@ -19,42 +19,41 @@ function ListProducts() {
         try {
             setLoading(true);
 
-        const res = await api.get("/AllProducts/", {
-            params: {
-                search,
-                category,
-                max_price: maxPrice,
-                in_stock: inStock,
-            },
-        });
+            const res = await api.get("/AllProducts/", {
+                params: {
+                    search,
+                    category,
+                    max_price: maxPrice,
+                    in_stock: inStock,
+                },
+            });
 
-        setProducts(res.data);
+            setProducts(res.data);
 
-    } catch (err) {
-        console.log(err);
-    } finally {
-        setLoading(false);
-    }
-};
+        } catch (err) {
+            console.log(err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         fetchProducts();
     }, [search, category, maxPrice, inStock]);
 
-    // Add to cart (localStorage)
-    const addToCart = (product) => {
-        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const addToCart = async (productId) => {
 
-        const existing = cart.find((item) => item.id === product.id);
+        try {
 
-        if (existing) {
-            existing.quantity += 1;
-        } else {
-            cart.push({ ...product, quantity: 1 });
+            await api.post(`/add_to_cart/${productId}/`);
+
+            alert("Added to cart");
+
+        } catch (err) {
+
+            console.log(err);
+
         }
-
-        localStorage.setItem("cart", JSON.stringify(cart));
-        alert("Added to cart");
     };
 
     return (
@@ -103,13 +102,11 @@ function ListProducts() {
                     {products.map((p) => (
                         <div className="card" key={p.id}>
                             {p.product_image && (
-
                                 <img
                                     src={`http://127.0.0.1:8000${p.product_image}`}
                                     alt={p.name}
                                     className="product-image"
                                 />
-
                             )}
 
                             <h4>{p.name}</h4>
@@ -121,7 +118,7 @@ function ListProducts() {
 
                             <div className="product-buttons">
 
-                                <button onClick={() => addToCart(p)}>
+                                <button onClick={() => addToCart(p.id)}>
                                     Add to Cart
                                 </button>
 

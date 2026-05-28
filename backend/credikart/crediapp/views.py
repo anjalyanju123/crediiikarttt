@@ -470,6 +470,147 @@ def AllProducts(request):
     serializer = ProductSerializer(queryset, many=True)
     return Response(serializer.data)
 
+
+
+# ================= ADD TO CART =================
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_to_cart(request, product_id):
+
+    product = Product.objects.get(id=product_id)
+
+    cart_item, created = Cart.objects.get_or_create(
+        customer=request.user,
+        product=product
+    )
+
+    if not created:
+        cart_item.quantity += 1
+
+    cart_item.save()
+
+    return Response({"message": "Added to cart"})
+
+
+# ================= GET CART =================
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_cart(request):
+
+    cart = Cart.objects.filter(customer=request.user)
+
+    serializer = CartSerializer(cart, many=True)
+
+    return Response(serializer.data)
+
+
+# ================= UPDATE QUANTITY =================
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_cart(request, cart_id):
+
+    cart_item = Cart.objects.get(
+        id=cart_id,
+        customer=request.user
+    )
+
+    action = request.data.get("action")
+
+    if action == "increase":
+        cart_item.quantity += 1
+
+    elif action == "decrease":
+
+        if cart_item.quantity > 1:
+            cart_item.quantity -= 1
+
+    cart_item.save()
+
+    return Response({"message": "Cart updated"})
+
+
+# ================= REMOVE ITEM =================
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def remove_cart_item(request, cart_id):
+
+    cart_item = Cart.objects.get(
+        id=cart_id,
+        customer=request.user
+    )
+
+    cart_item.delete()
+
+    return Response({"message": "Item removed"})
+
+
+# ================= SAVE CHECKOUT =================
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def save_checkout(request):
+
+    cart_items = Cart.objects.filter(
+        customer=request.user
+    )
+
+    total = sum(
+        item.product.price * item.quantity
+        for item in cart_items
+    )
+
+    checkout, created = Checkout.objects.get_or_create(
+        customer=request.user
+    )
+
+    checkout.payment_method = request.data.get(
+        "payment_method"
+    )
+
+    checkout.repayment_schedule = request.data.get(
+        "repayment_schedule"
+    )
+
+    checkout.due_date = request.data.get(
+        "due_date"
+    )
+
+    checkout.total_amount = total
+
+    checkout.save()
+
+    serializer = CheckoutSerializer(checkout)
+
+    return Response(serializer.data)
+
+
+# ================= GET CHECKOUT =================
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_checkout(request):
+
+    try:
+
+        checkout = Checkout.objects.get(
+            customer=request.user
+        )
+
+        serializer = CheckoutSerializer(checkout)
+
+        return Response(serializer.data)
+
+    except Checkout.DoesNotExist:
+
+        return Response({
+            "error": "No checkout found"
+        }, status=404)
+    
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def admin_customers(request):
@@ -506,125 +647,58 @@ def customer_list(request):
 @permission_classes([IsAuthenticated])
 def place_order(request):
     try:
-        print("\n========== PLACE ORDER API CALLED ==========")
-
         user = request.user
         data = request.data
-
-        print("Authenticated User:", user)
-        print("Request Data:", data)
 
         payment_method = data.get("payment_method")
         total_amount = data.get("total_amount")
         items = data.get("items", [])
 
         repayment_schedule = data.get("repayment_schedule")
-        custom_due_date = data.get("custom_due_date")
+        due_date = data.get("due_date")   # ✅ directly use frontend value
 
         print("Payment Method:", payment_method)
         print("Total Amount:", total_amount)
         print("Repayment Schedule:", repayment_schedule)
-        print("Custom Due Date:", custom_due_date)
-        print("Items Received:", items)
+        print("Due Date:", due_date)
 
         # ================= CHECK OVERDUE =================
-        print("\nChecking overdue credit payments...")
-
         overdue_exists = Order.objects.filter(
             user=user,
             payment_method="credit",
             status="overdue"
         ).exists()
 
-        print("Overdue Exists:", overdue_exists)
-
         if overdue_exists:
-            print("User has overdue payments. Blocking purchase.")
-
             return Response(
                 {"error": "You have overdue payments. Clear dues before purchasing."},
                 status=403
             )
 
-        # ================= CALCULATE DUE DATE =================
-        due_date = None
-
-        print("\nCalculating due date...")
-
-        if payment_method == "credit":
-
-            if repayment_schedule == "weekly":
-                due_date = timezone.now().date() + timedelta(days=7)
-                print("Weekly repayment selected")
-
-            elif repayment_schedule == "2_weeks":
-                due_date = timezone.now().date() + timedelta(days=14)
-                print("2 weeks repayment selected")
-
-            elif repayment_schedule == "3_weeks":
-                due_date = timezone.now().date() + timedelta(days=21)
-                print("3 weeks repayment selected")
-
-            elif repayment_schedule == "monthly":
-                due_date = timezone.now().date() + timedelta(days=30)
-                print("Monthly repayment selected")
-
-            elif repayment_schedule == "custom":
-                print("Custom repayment selected")
-
-                if not custom_due_date:
-                    print("Custom due date missing!")
-
-                    return Response(
-                        {"error": "Custom due date is required"},
-                        status=400
-                    )
-
-                due_date = datetime.strptime(
-                    custom_due_date,
-                    "%Y-%m-%d"
-                ).date()
-
-            else:
-                print("Default repayment selected (7 days)")
-                due_date = timezone.now().date() + timedelta(days=7)
-
-        print("Calculated Due Date:", due_date)
+        # ================= VALIDATE DUE DATE =================
+        if payment_method == "credit" and not due_date:
+            return Response(
+                {"error": "Due date is required for credit orders"},
+                status=400
+            )
 
         # ================= CREATE ORDER =================
-        print("\nCreating Order...")
-
         order = Order.objects.create(
             user=user,
             total_amount=total_amount,
             payment_method=payment_method,
             repayment_schedule=repayment_schedule,
             status="credit" if payment_method == "credit" else "paid",
-            due_date=due_date
+            due_date=due_date if payment_method == "credit" else None
         )
 
-        print("Order Created Successfully")
-        print("Order ID:", order.id)
-        print("Order Status:", order.status)
+        Cart.objects.filter(customer=user).delete()
 
         # ================= ORDER ITEMS =================
-        print("\nProcessing Order Items...")
-
         for item in items:
-
-            print("\nCurrent Item:", item)
-
             product = get_object_or_404(Product, id=item["product"])
 
-            print("Product Found:", product.name)
-            print("Current Stock:", product.stock)
-            print("Requested Quantity:", item["quantity"])
-
-            # stock check
             if product.stock < item["quantity"]:
-
-                print("Insufficient stock for:", product.name)
-
                 return Response(
                     {"error": f"{product.name} out of stock"},
                     status=400
@@ -637,27 +711,14 @@ def place_order(request):
                 price=item["price"]
             )
 
-            print("OrderItem created successfully")
-
-            # reduce stock
             product.stock -= item["quantity"]
-
-            print("Updated Stock:", product.stock)
-
             if product.stock <= 0:
                 product.stock = 0
                 product.is_available = False
-
-                print(f"{product.name} is now unavailable")
-
             product.save()
 
-            print("Product saved successfully")
-
         # ================= TRANSACTION =================
-        print("\nCreating Transaction...")
-
-        transaction = Transaction.objects.create(
+        Transaction.objects.create(
             user=user,
             order=order,
             transaction_type="credit" if payment_method == "credit" else "payment",
@@ -665,22 +726,13 @@ def place_order(request):
             description="Credit Purchase" if payment_method == "credit" else "Ready Payment"
         )
 
-        print("Transaction Created:", transaction.id)
-
         # ================= NOTIFICATION =================
-        print("\nCreating Notification...")
-
         if payment_method == "credit":
-
-            notification = Notification.objects.create(
+            Notification.objects.create(
                 title="Credit Purchase Created",
                 message=f"Your payment of ₹{total_amount} is due on {due_date}",
                 role="customer"
             )
-
-            print("Notification Created:", notification.id)
-
-        print("\n========== ORDER PLACED SUCCESSFULLY ==========")
 
         return Response({
             "message": "Order placed successfully",
@@ -689,14 +741,7 @@ def place_order(request):
         }, status=201)
 
     except Exception as e:
-
-        print("\n========== ERROR OCCURRED ==========")
-        print("Error:", str(e))
-
-        return Response(
-            {"error": str(e)},
-            status=500
-        )
+        return Response({"error": str(e)}, status=500)
 
 # @api_view(["POST"])
 # @permission_classes([IsAuthenticated])
@@ -829,6 +874,7 @@ def customer_transactions(request):
             "transaction_type": t.transaction_type,
             "amount": t.amount,
             "description": t.description,
+            "order_status":t.order.status,
             "created_at": t.created_at
         }
         for t in transactions

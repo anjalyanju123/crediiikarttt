@@ -28,5 +28,12 @@ urlpatterns = [
     path('admin_revenue_dashboard/', admin_revenue_dashboard, name='admin_revenue_dashboard'),
     path('create_razorpay_order/<int:order_id>/', create_razorpay_order, name='create_razorpay_order'),
     path('verify_payment/<int:order_id>/', verify_payment, name='verify_payment'),
+    path("add_to_cart/<int:product_id>/", add_to_cart,name='add_to_cart'),
+    path("cart/", get_cart,name='get_cart'),
+    path("cart/<int:cart_id>/", update_cart,name='update_cart'),
+    path("cart/remove/<int:cart_id>/", remove_cart_item,name='remove_cart_item'),
+    path("get_checkout/", get_checkout,name='get_checkout'),
+    path("save_checkout/", save_checkout,name='save_checkout'),
+
 
 ]

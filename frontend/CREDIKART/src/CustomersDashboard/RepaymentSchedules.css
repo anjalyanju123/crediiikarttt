@@ -1,0 +1,49 @@
+.repayment-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+  color: #fff;
+}
+
+.plan-summary {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.installment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.installment-card {
+  background: #0f172a;
+  padding: 15px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid #334155;
+}
+
+.status {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.status.pending {
+  background: #facc15;
+  color: black;
+}
+
+.status.paid {
+  background: #22c55e;
+  color: white;
+}
+
+.status.overdue {
+  background: #ef4444;
+  color: white;
+}

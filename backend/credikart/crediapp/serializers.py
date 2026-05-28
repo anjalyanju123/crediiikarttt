@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Notification, Product, Order, OrderItem, Transaction,Cart
+from .models import Notification, Product, Order, OrderItem, Transaction,Cart,Checkout
 import re
 
 User = get_user_model()
@@ -248,3 +248,17 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = "__all__"       
+
+class CheckoutSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = Checkout
+
+        fields = "__all__"
+
+        read_only_fields = [
+            "customer",
+            "created_at",
+            "updated_at",
+        ]        

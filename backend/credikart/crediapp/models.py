@@ -195,6 +195,61 @@ class Transaction(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.transaction_type} - {self.amount}"
     
+class Checkout(models.Model):
+
+    PAYMENT_CHOICES = [
+        ("ready", "Ready Payment"),
+        ("credit", "Pay Later"),
+    ]
+
+    REPAYMENT_CHOICES = [
+        ("weekly", "First Week"),
+        ("2_weeks", "Second Week"),
+        ("3_weeks", "Third Week"),
+        ("monthly", "Monthly"),
+        ("custom", "Custom Date"),
+    ]
+
+    customer = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="checkout"
+    )
+
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_CHOICES
+    )
+
+    repayment_schedule = models.CharField(
+        max_length=20,
+        choices=REPAYMENT_CHOICES,
+        null=True,
+        blank=True
+    )
+
+    due_date = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    total_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    def __str__(self):
+
+        return f"{self.customer.username} Checkout"    
 
 class Repayment(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./Cart.css";
 import { useNavigate } from "react-router-dom";
 import Backbutton from "../auth/Backbutton";
+import api from "../api/axios";
 
 function Cart() {
 
@@ -21,87 +22,77 @@ function Cart() {
   // ================= LOAD CART =================
 
   useEffect(() => {
+    fetchCart();
+  }, []);
+
+  const fetchCart = async () => {
 
     try {
 
-      const stored =
-        JSON.parse(localStorage.getItem("cart")) || [];
+      const res = await api.get("/cart/");
 
-      setCart(stored);
+      setCart(res.data);
 
     } catch (err) {
 
-      setCart([]);
+      console.log(err);
 
     }
-
-  }, []);
-
-  // ================= SAVE CART =================
-
-  const saveCart = (updated) => {
-
-    setCart(updated);
-
-    localStorage.setItem(
-      "cart",
-      JSON.stringify(updated)
-    );
   };
 
   // ================= INCREASE QTY =================
 
-  const increaseQty = (id) => {
+  const increaseQty = async (id) => {
 
-    const updated = cart.map((item) =>
+    try {
 
-      item.id === id
+      await api.patch(`/cart/${id}/`, {
+        action: "increase",
+      });
 
-        ? {
-          ...item,
-          quantity: item.quantity + 1
-        }
+      fetchCart();
 
-        : item
-    );
+    } catch (err) {
 
-    saveCart(updated);
+      console.log(err);
+
+    }
   };
 
   // ================= DECREASE QTY =================
 
-  const decreaseQty = (id) => {
+  const decreaseQty = async (id) => {
 
-    const updated = cart
-      .map((item) =>
+    try {
 
-        item.id === id
+      await api.patch(`/cart/${id}/`, {
+        action: "decrease",
+      });
 
-          ? {
-            ...item,
-            quantity: Math.max(
-              item.quantity - 1,
-              1
-            )
-          }
+      fetchCart();
 
-          : item
-      )
+    } catch (err) {
 
-      .filter((item) => item.quantity > 0);
+      console.log(err);
 
-    saveCart(updated);
+    }
   };
 
   // ================= REMOVE ITEM =================
 
-  const removeItem = (id) => {
+  const removeItem = async (id) => {
 
-    const updated = cart.filter(
-      (item) => item.id !== id
-    );
+    try {
 
-    saveCart(updated);
+      await api.delete(`/cart/remove/${id}/`);
+
+      fetchCart();
+
+    } catch (err) {
+
+      console.log(err);
+
+    }
   };
 
   // ================= TOTAL =================
@@ -117,25 +108,17 @@ function Cart() {
 
   // ================= DUE DATE =================
 
+  // ================= DUE DATE =================
+
   const calculateDueDate = (schedule) => {
 
     const today = new Date();
 
     if (schedule === "weekly") {
 
+      // 4 weekly installments = 7 days
+
       today.setDate(today.getDate() + 7);
-
-    }
-
-    else if (schedule === "2_weeks") {
-
-      today.setDate(today.getDate() + 14);
-
-    }
-
-    else if (schedule === "3_weeks") {
-
-      today.setDate(today.getDate() + 21);
 
     }
 
@@ -149,14 +132,31 @@ function Cart() {
       .toISOString()
       .split("T")[0];
   };
-
-  // ================= CHECKOUT =================
-
-  const goToPayment = () => {
+  const goToPayment = async () => {
 
     if (!cart.length) {
 
       alert("Cart is empty");
+
+      return;
+    }
+
+    if (!paymentMethod) {
+
+      alert("Please select payment method");
+
+      return;
+    }
+
+    if (
+
+      paymentMethod === "credit" &&
+
+      !repaymentSchedule
+
+    ) {
+
+      alert("Please select repayment schedule");
 
       return;
     }
@@ -176,28 +176,52 @@ function Cart() {
       return;
     }
 
-    localStorage.setItem(
+    try {
 
-      "checkout",
+      let dueDate = null;
 
-      JSON.stringify({
+      if (paymentMethod === "credit") {
 
-        cart,
+        dueDate =
 
-        paymentMethod,
+          repaymentSchedule === "custom"
 
-        total,
+            ? customDate
 
-        repaymentSchedule,
+            : calculateDueDate(
+              repaymentSchedule
+            );
+      }
 
-        customDate,
+      // SAVE CHECKOUT TO BACKEND
 
-      })
-    );
+      await api.post("/save_checkout/", {
 
-    navigate("/payment");
+        payment_method: paymentMethod,
+
+        repayment_schedule:
+
+          paymentMethod === "credit"
+
+            ? repaymentSchedule
+
+            : null,
+
+        due_date: dueDate,
+      });
+
+      // GO TO PAYMENT PAGE
+
+      navigate("/payment");
+
+    } catch (err) {
+
+      console.log(err);
+
+      alert("Failed to save checkout");
+
+    }
   };
-
   return (
 
     <div className="cart-container">
@@ -228,7 +252,7 @@ function Cart() {
 
                 <img
                   src={`http://127.0.0.1:8000${item.product_image}`}
-                  alt={item.name}
+                  alt={item.product_name}
                   className="cart-image"
                 />
 
@@ -236,7 +260,7 @@ function Cart() {
 
               <div className="cart-details">
 
-                <h4>{item.name}</h4>
+                <h4>{item.product_name}</h4>
 
                 <p>Price: ₹{item.price}</p>
 
@@ -312,22 +336,10 @@ function Cart() {
 
         <label>
 
-          <input
-            type="radio"
-            value="ready"
-            checked={
-              paymentMethod === "ready"
-            }
-            onChange={(e) =>
-              setPaymentMethod(
-                e.target.value
-              )
-            }
-          />
+          <input type="radio" value="ready" checked={paymentMethod === "ready"}
+            onChange={(e) => setPaymentMethod(e.target.value)} />
 
-          Ready Payment
-          {" "}
-          (Full Payment)
+          Ready Payment (Full Payment)
 
         </label>
 
@@ -335,22 +347,11 @@ function Cart() {
 
         <label>
 
-          <input
-            type="radio"
-            value="credit"
-            checked={
-              paymentMethod === "credit"
-            }
-            onChange={(e) =>
-              setPaymentMethod(
-                e.target.value
-              )
-            }
+          <input type="radio" value="credit" checked={paymentMethod === "credit"}
+            onChange={(e) => setPaymentMethod(e.target.value)}
           />
 
-          Pay Later
-          {" "}
-          / Credit Purchase
+          Pay Later  / Credit Purchase
 
         </label>
 
@@ -378,61 +379,19 @@ function Cart() {
               Repayment Schedule:
             </span>
 
-            <select
 
-              value={repaymentSchedule}
-
-              onChange={(e) =>
-                setRepaymentSchedule(
-                  e.target.value
-                )
-              }
-
-              style={{
-
-                padding: "8px 12px",
-
-                borderRadius: "6px",
-
-                backgroundColor: "#1e293b",
-
-                color: "#f8fafc",
-
-                border:
-                  "1px solid #475569",
-
-                outline: "none",
-
-                cursor: "pointer",
-
-                width: "100%",
-
-                maxWidth: "320px"
-              }}
-            >
+            <select value={repaymentSchedule}
+              onChange={(e) => setRepaymentSchedule(e.target.value)}>
+              <option value="">
+                Select Schedule
+              </option>
 
               <option value="weekly">
-                First Week
-                {" "}
-                (7 Days)
-              </option>
-
-              <option value="2_weeks">
-                Second Week
-                {" "}
-                (14 Days)
-              </option>
-
-              <option value="3_weeks">
-                Third Week
-                {" "}
-                (21 Days)
+                Weekly Payment
               </option>
 
               <option value="monthly">
-                Monthly
-                {" "}
-                (30 Days)
+                Monthly Payment
               </option>
 
               <option value="custom">
@@ -458,19 +417,22 @@ function Cart() {
                       .toISOString()
                       .split("T")[0]
                   }
-                  value={customDate}
-                  onChange={(e) =>
-                    setCustomDate(
-                      e.target.value
+
+                  max={
+                    new Date(
+                      new Date().setDate(
+                        new Date().getDate() + 30
+                      )
                     )
+                      .toISOString()
+                      .split("T")[0]
                   }
-                  style={{
-                    padding: "8px",
-                    marginTop: "5px",
-                    borderRadius: "6px",
-                    width: "100%"
-                  }}
-                />
+
+
+                  value={customDate}
+
+                  onChange={(e) =>
+                    setCustomDate(e.target.value)} />
 
               </div>
 
@@ -478,33 +440,110 @@ function Cart() {
 
             {/* AUTO DUE DATE */}
 
-            <div
-              style={{
-                color: "#cbd5e1",
-                fontSize: "14px"
-              }}
-            >
+            {repaymentSchedule === "custom" && (
 
-              Due Date:
-              {" "}
+              <div>
 
-              <b
-                style={{
-                  color: "#34d399"
-                }}
-              >
+                Due Date:
+                {" "}
 
-                {repaymentSchedule === "custom"
+                <b>
 
-                  ? customDate || "Select date"
+                  {customDate || "Select date"}
 
-                  : calculateDueDate(
-                    repaymentSchedule
-                  )}
+                </b>
 
-              </b>
+              </div>
 
-            </div>
+            )}
+            {/* WEEKLY PAYMENT DETAILS */}
+
+            {repaymentSchedule === "weekly" && (
+
+              <div>
+
+                <p>
+
+                  Weekly Installment:
+                  {" "}
+
+                  <b>
+
+                    ₹{(total / 4).toFixed(2)}
+
+                  </b>
+
+                </p>
+
+                <p>
+
+                  Total Installments:
+                  {" "}
+
+                  <b>4 Weeks</b>
+
+                </p>
+
+                <p>
+
+                  First Payment Due:
+                  {" "}
+
+                  <b>
+
+                    {calculateDueDate("weekly")}
+
+                  </b>
+
+                </p>
+
+              </div>
+
+            )}
+
+            {/* MONTHLY PAYMENT DETAILS */}
+
+            {repaymentSchedule === "monthly" && (
+
+              <div>
+
+                <p>
+
+                  Payment After:
+                  {" "}
+
+                  <b>30 Days</b>
+
+                </p>
+
+                <p>
+
+                  Amount To Pay:
+                  {" "}
+
+                  <b>
+
+                    ₹{(total / 4).toFixed(2)}
+
+                  </b>
+
+                </p>
+                <p>
+
+                  First Payment Due:
+                  {" "}
+
+                  <b>
+
+                    {calculateDueDate("monthly")}
+
+                  </b>
+
+                </p>
+
+              </div>
+
+            )}
 
           </div>
 

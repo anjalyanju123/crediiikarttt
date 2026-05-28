@@ -19,6 +19,7 @@ function Transactions() {
       const res = await api.get("/customer_transactions/");
 
       setTransactions(res.data);
+      console.log(res.data)
 
     } catch (err) {
       console.log(err);
@@ -57,13 +58,8 @@ function Transactions() {
 
           <div className="txn-body">
 
-            <p><b>Order ID:</b> #{t.order}</p>
-
             <p>
-              <b>Status:</b>{" "}
-              <span className={`status ${t.order_status}`}>
-                {t.order_status?.toUpperCase()}
-              </span>
+              <b>Status:</b>{" "} {t.order_status}
             </p>
 
             <p>
