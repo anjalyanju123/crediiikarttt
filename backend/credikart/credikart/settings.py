@@ -98,7 +98,7 @@ RAZORPAY_KEY_SECRET = "Vn72aLVlAAOW5AS4N16XCdRC"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'credikartdb2',
+        'NAME': 'credikartdb3',
         'USER': 'postgres',
         'PASSWORD': 'Anjaly',
         'HOST': 'localhost',

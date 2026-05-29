@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Notification, Product, Order, OrderItem, Transaction,Cart,Checkout
+from .models import Notification, Product, Order, OrderItem, Transaction,Cart,Checkout,Repayment,RepaymentInstallment,RepaymentPlan
 import re
 
 User = get_user_model()
@@ -261,4 +261,45 @@ class CheckoutSerializer(serializers.ModelSerializer):
             "customer",
             "created_at",
             "updated_at",
+        ]        
+
+
+class RepaymentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Repayment
+        fields = "__all__"
+
+
+class RepaymentInstallmentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RepaymentInstallment
+        fields = [
+            "id",
+            "due_date",
+            "amount",
+            "status",
+            "paid_at",
+        ]
+
+
+class RepaymentPlanSerializer(serializers.ModelSerializer):
+
+    installments = RepaymentInstallmentSerializer(
+        many=True,
+        read_only=True
+    )
+
+    class Meta:
+        model = RepaymentPlan
+        fields = [
+            "id",
+            "order",
+            "schedule_type",
+            "total_installments",
+            "installment_amount",
+            "start_date",
+            "created_at",
+            "installments",
         ]        

@@ -107,6 +107,7 @@ class Product(models.Model):
     
 
 class Order(models.Model):
+
     PAYMENT_CHOICES = [
         ("ready", "Ready Payment"),
         ("credit", "Pay Later"),
@@ -116,36 +117,132 @@ class Order(models.Model):
         ("pending", "Pending"),
         ("paid", "Paid"),
         ("credit", "Credit Pending"),
+        ("partial", "Partially Paid"),
         ("overdue", "Overdue"),
     ]
 
     REPAYMENT_CHOICES = [
-        ("weekly", "First Week"),
-        ("2_weeks", "Second Week"),
-        ("3_weeks", "Third Week"),
-        ("monthly", "Monthly"),
-        ("custom", "Custom Date"),
+        ("weekly", "Weekly Payment"),
+        ("monthly", "Monthly Payment"),
+        ("custom", "Custom Due Date"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=10, choices=PAYMENT_CHOICES)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-    due_date = models.DateField(null=True, blank=True) 
-    repayment_schedule = models.CharField(max_length=20,choices=REPAYMENT_CHOICES,null=True,blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-class OrderItem(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
 
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    total_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
 
-    quantity = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    # NEW
+    remaining_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    payment_method = models.CharField(
+        max_length=10,
+        choices=PAYMENT_CHOICES
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending"
+    )
+
+    repayment_schedule = models.CharField(
+        max_length=20,
+        choices=REPAYMENT_CHOICES,
+        null=True,
+        blank=True
+    )
+
+    due_date = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    # NEW
+    installment_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+    # NEW
+    total_installments = models.IntegerField(
+        default=1
+    )
+
+    # NEW
+    installments_paid = models.IntegerField(
+        default=0
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
 
     def __str__(self):
-        return f"{self.product.name} x {self.quantity}"
+        return f"Order #{self.id}"
     
+
+
+class OrderItem(models.Model):
+
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="items"
+    )
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE
+    )
+
+    quantity = models.PositiveIntegerField(
+        default=1
+    )
+
+    # product price at purchase time
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    # NEW
+    subtotal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def save(self, *args, **kwargs):
+
+        # auto subtotal calculation
+        self.subtotal = (
+            self.quantity * self.price
+        )
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+
+        return (
+            f"{self.product.name} "
+            f"x {self.quantity}"
+        )
 class Cart(models.Model):
 
     customer = models.ForeignKey(
@@ -203,11 +300,9 @@ class Checkout(models.Model):
     ]
 
     REPAYMENT_CHOICES = [
-        ("weekly", "First Week"),
-        ("2_weeks", "Second Week"),
-        ("3_weeks", "Third Week"),
-        ("monthly", "Monthly"),
-        ("custom", "Custom Date"),
+        ("weekly", "Weekly Payment"),
+        ("monthly", "Monthly Payment"),
+        ("custom", "Custom Due Date"),
     ]
 
     customer = models.OneToOneField(
@@ -239,6 +334,19 @@ class Checkout(models.Model):
         default=0
     )
 
+    # NEW
+    installment_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+    # NEW
+    total_installments = models.IntegerField(
+        default=1
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True
     )
@@ -248,8 +356,7 @@ class Checkout(models.Model):
     )
 
     def __str__(self):
-
-        return f"{self.customer.username} Checkout"    
+        return f"{self.customer.username} Checkout" 
 
 class Repayment(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
@@ -263,3 +370,57 @@ class Repayment(models.Model):
     )
 
     paid_at = models.DateTimeField(auto_now_add=True)
+
+class RepaymentPlan(models.Model):
+
+    SCHEDULE_CHOICES = [
+        ("weekly", "Weekly"),
+        ("monthly", "Monthly"),
+    ]
+
+    order = models.ForeignKey(
+        "Order",
+        on_delete=models.CASCADE,
+        related_name="repayment_plans"
+    )
+
+    schedule_type = models.CharField(
+        max_length=20,
+        choices=SCHEDULE_CHOICES
+    )
+
+    total_installments = models.IntegerField(default=1)
+
+    installment_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    start_date = models.DateField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class RepaymentInstallment(models.Model):
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("paid", "Paid"),
+        ("overdue", "Overdue"),
+    ]
+
+    plan = models.ForeignKey(
+        RepaymentPlan,
+        on_delete=models.CASCADE,
+        related_name="installments"
+    )
+
+    due_date = models.DateField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending"
+    )
+
+    paid_at = models.DateTimeField(null=True, blank=True)       

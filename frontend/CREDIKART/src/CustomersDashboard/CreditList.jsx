@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Backbutton from "../auth/Backbutton";
 import './CreditList.css'
 
@@ -97,8 +97,8 @@ function CreditList() {
                       c.status === "overdue"
                         ? "red"
                         : c.status === "credit"
-                        ? "orange"
-                        : "green",
+                          ? "orange"
+                          : "green",
 
                     fontWeight: "bold",
                   }}
@@ -123,24 +123,37 @@ function CreditList() {
               {(c.status === "credit" ||
                 c.status === "overdue") && (
 
-                <button
-                  onClick={() =>
-                    navigate(`/customer-repayment/${c.id}`)
-                  }
-                  style={{
-                    marginTop: "10px",
-                    padding: "10px 15px",
-                    backgroundColor: "#22c55e",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Make Repayment
+                  <button
+                    onClick={() =>
+                      navigate(`/customer-repayment/${c.id}`)
+                    }
+                    style={{
+                      marginTop: "10px",
+                      padding: "10px 15px",
+                      backgroundColor: "#22c55e",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Make Repayment
+                  </button>
+                )}
+              <Link to={`/repayment-schedule/${c.id}`}>
+                <button style={{
+                      marginTop: "10px",
+                      padding: "10px 15px",
+                      backgroundColor: "#22c55e",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "5px",
+                      marginLeft:"10px",
+                      cursor: "pointer",
+                    }}>
+                  View Schedule
                 </button>
-              )}
-
+              </Link>
             </div>
           ))
         )}

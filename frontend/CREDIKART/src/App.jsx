@@ -24,6 +24,7 @@ import Shopsend_notifications from './shopkeepersDashboard/Shopsend_notification
 import ShopkeeperAnalytics from './shopkeepersDashboard/ShopkeeperAnalytics';
 import Backbutton from './auth/Backbutton';
 import CustomerRepayment from './CustomersDashboard/CustomerRepayment';
+import RepaymentSchedule from './CustomersDashboard/RepaymentSchedules';
 function App() {
  
 
@@ -61,7 +62,7 @@ function App() {
       <Route path='/customer-notifications' element={<Notifications />}/>
       <Route path='/customer-transactions' element={<Transactions />}/>
       <Route path='/customer-repayment/:id' element={<CustomerRepayment />}/>
-
+      <Route path='/repayment-schedule/:id' element={<RepaymentSchedule />}/>
 
 
       

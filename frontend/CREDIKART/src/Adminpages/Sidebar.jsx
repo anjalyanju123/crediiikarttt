@@ -93,14 +93,6 @@ function Sidebar() {
         >
           Revenue Analytics
         </NavLink>
-        <NavLink
-          to="/Profile"
-          className={({ isActive }) =>
-            isActive ? "sidebar-link active" : "sidebar-link"
-          }
-        >
-          Profile
-        </NavLink>
       </nav>
 
       <div className="sidebar-footer">

@@ -221,38 +221,45 @@ def shopkeepers_list(request):
     )
 
     return Response(serializer.data)    
+from decimal import Decimal
 
+PENALTY_PERCENTAGE = Decimal("0.02")
+ADMIN_COMMISSION_PERCENTAGE = Decimal("0.05")
 
-PENALTY_PERCENTAGE = 0.02   # 2%
-ADMIN_COMMISSION_PERCENTAGE = 0.05  # 5%
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def admin_revenue_dashboard(request):
 
-    # Total credit issued
-    total_credit = Transaction.objects.aggregate(
-        total=Sum("amount")
-    )["total"] or 0
+    total_credit = (
+        Transaction.objects.aggregate(
+            total=Sum("amount")
+        )["total"] or Decimal("0")
+    )
 
-    # Total repayment collected
-    total_repayment = Repayment.objects.aggregate(
-        total=Sum("amount_paid")
-    )["total"] or 0
+    total_repayment = (
+        Repayment.objects.aggregate(
+            total=Sum("amount_paid")
+        )["total"] or Decimal("0")
+    )
 
-    # Outstanding amount
-    outstanding_balance = total_credit - total_repayment
+    outstanding_balance = (
+        total_credit - total_repayment
+    )
 
-    # Admin commission revenue
-    admin_commission = total_repayment * ADMIN_COMMISSION_PERCENTAGE
+    admin_commission = (
+        total_repayment * ADMIN_COMMISSION_PERCENTAGE
+    )
 
-    # Penalty revenue calculation
-    total_penalty = Repayment.objects.aggregate(
-        total=Sum("penalty_amount")
-    )["total"] or 0
+    total_penalty = (
+        Repayment.objects.aggregate(
+            total=Sum("penalty_amount")
+        )["total"] or Decimal("0")
+    )
 
-    # Total admin revenue
-    total_admin_revenue = admin_commission + total_penalty
+    total_admin_revenue = (
+        admin_commission + total_penalty
+    )
 
     return Response({
         "total_credit_given": total_credit,
@@ -562,7 +569,6 @@ def save_checkout(request):
         item.product.price * item.quantity
         for item in cart_items
     )
-
     checkout, created = Checkout.objects.get_or_create(
         customer=request.user
     )
@@ -578,6 +584,11 @@ def save_checkout(request):
     checkout.due_date = request.data.get(
         "due_date"
     )
+    if checkout.payment_method == "credit":
+        if checkout.repayment_schedule == "weekly" or checkout.repayment_schedule == "weekly":
+
+            checkout.total_installments = 4
+            checkout.installment_amount = total / 4
 
     checkout.total_amount = total
 
@@ -646,102 +657,268 @@ def customer_list(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def place_order(request):
+
     try:
+
         user = request.user
         data = request.data
 
         payment_method = data.get("payment_method")
-        total_amount = data.get("total_amount")
-        items = data.get("items", [])
-
         repayment_schedule = data.get("repayment_schedule")
-        due_date = data.get("due_date")   # ✅ directly use frontend value
+        due_date = data.get("due_date")
 
-        print("Payment Method:", payment_method)
-        print("Total Amount:", total_amount)
-        print("Repayment Schedule:", repayment_schedule)
-        print("Due Date:", due_date)
+        # ================= CART ITEMS =================
 
-        # ================= CHECK OVERDUE =================
+        cart_items = Cart.objects.filter(
+            customer=user
+        )
+
+        if not cart_items.exists():
+
+            return Response(
+                {"error": "Cart is empty"},
+                status=400
+            )
+
+        # ================= TOTAL =================
+
+        total_amount = sum(
+            item.product.price * item.quantity
+            for item in cart_items
+        )
+
+        # ================= OVERDUE CHECK =================
+
         overdue_exists = Order.objects.filter(
             user=user,
-            payment_method="credit",
             status="overdue"
         ).exists()
 
         if overdue_exists:
+
             return Response(
-                {"error": "You have overdue payments. Clear dues before purchasing."},
+                {
+                    "error":
+                    "Clear overdue payments first"
+                },
                 status=403
             )
 
-        # ================= VALIDATE DUE DATE =================
-        if payment_method == "credit" and not due_date:
-            return Response(
-                {"error": "Due date is required for credit orders"},
-                status=400
+        # ================= INSTALLMENT LOGIC =================
+
+        installment_amount = None
+        total_installments = 1
+        remaining_amount = total_amount
+
+        if payment_method == "credit":
+
+            plan = RepaymentPlan.objects.create(
+
+                order=order,
+
+                schedule_type=repayment_schedule,
+
+                total_installments=total_installments,
+
+                installment_amount=installment_amount,
+
+                start_date=timezone.now().date()
             )
 
+            # CREATE INSTALLMENTS
+
+            for i in range(total_installments):
+
+                if repayment_schedule == "weekly":
+
+                    due_date = (
+                        timezone.now().date()
+                        + timedelta(days=7 * (i + 1))
+                    )
+
+                else:  # monthly
+
+                    due_date = (
+                        timezone.now().date()
+                        + timedelta(days=30 * (i + 1))
+                    )
+
+                RepaymentInstallment.objects.create(
+
+                    plan=plan,
+
+                    due_date=due_date,
+
+                    amount=installment_amount,
+
+                    status="pending"
+                )
+
+            if repayment_schedule == "weekly" or repayment_schedule == "monthly":
+
+                total_installments = 4
+                installment_amount = (
+                    total_amount / 4
+                )
+
+            elif repayment_schedule == "custom":
+
+                total_installments = 1
+                installment_amount = total_amount
+
         # ================= CREATE ORDER =================
+
         order = Order.objects.create(
+
             user=user,
+
             total_amount=total_amount,
+
+            remaining_amount=remaining_amount,
+
             payment_method=payment_method,
+
             repayment_schedule=repayment_schedule,
-            status="credit" if payment_method == "credit" else "paid",
-            due_date=due_date if payment_method == "credit" else None
+
+            installment_amount=installment_amount,
+
+            total_installments=total_installments,
+
+            installments_paid=0,
+
+            status=(
+                "credit"
+                if payment_method == "credit"
+                else "paid"
+            ),
+
+            due_date=(
+                due_date
+                if payment_method == "credit"
+                else None
+            )
         )
 
-        Cart.objects.filter(customer=user).delete()
+        # ================= CREATE ORDER ITEMS =================
 
-        # ================= ORDER ITEMS =================
-        for item in items:
-            product = get_object_or_404(Product, id=item["product"])
+        for item in cart_items:
 
-            if product.stock < item["quantity"]:
+            product = item.product
+
+            # STOCK CHECK
+
+            if product.stock < item.quantity:
+
                 return Response(
-                    {"error": f"{product.name} out of stock"},
+                    {
+                        "error":
+                        f"{product.name} out of stock"
+                    },
                     status=400
                 )
 
             OrderItem.objects.create(
-                order=order,
-                product=product,
-                quantity=item["quantity"],
-                price=item["price"]
-            )
 
-            product.stock -= item["quantity"]
+            order=order,
+
+            product=product,
+
+            quantity=item.quantity,
+
+            price=product.price,
+
+            subtotal=(
+                item.quantity * product.price
+            )
+        )
+        
+            # REDUCE STOCK
+
+            product.stock -= item.quantity
+
             if product.stock <= 0:
+
                 product.stock = 0
                 product.is_available = False
+
             product.save()
 
         # ================= TRANSACTION =================
-        Transaction.objects.create(
-            user=user,
-            order=order,
-            transaction_type="credit" if payment_method == "credit" else "payment",
-            amount=total_amount,
-            description="Credit Purchase" if payment_method == "credit" else "Ready Payment"
-        )
 
+        Transaction.objects.create(
+
+            user=user,
+
+            order=order,
+
+            transaction_type=(
+                "credit"
+                if payment_method == "credit"
+                else "payment"
+            ),
+
+            amount=total_amount,
+
+            description=(
+                "Credit Purchase"
+                if payment_method == "credit"
+                else "Ready Payment"
+            )
+        )
         # ================= NOTIFICATION =================
+
         if payment_method == "credit":
+
             Notification.objects.create(
+
                 title="Credit Purchase Created",
-                message=f"Your payment of ₹{total_amount} is due on {due_date}",
+
+                message=(
+                    f"Your payment of ₹{total_amount} "
+                    f"is due on {due_date}"
+                ),
+
                 role="customer"
             )
 
+        # ================= CLEAR CART =================
+
+        cart_items.delete()
+
         return Response({
-            "message": "Order placed successfully",
-            "order_id": order.id,
-            "due_date": due_date
+
+            "message":
+            "Order placed successfully",
+
+            "order_id":
+            order.id,
+
+            "total_amount":
+            order.total_amount,
+
+            "remaining_amount":
+            order.remaining_amount,
+
+            "installment_amount":
+            order.installment_amount,
+
+            "total_installments":
+            order.total_installments,
+
+            "due_date":
+            order.due_date,
+
+            "status":
+            order.status
+
         }, status=201)
 
     except Exception as e:
-        return Response({"error": str(e)}, status=500)
+
+        return Response(
+            {"error": str(e)},
+            status=500
+        )
 
 # @api_view(["POST"])
 # @permission_classes([IsAuthenticated])
@@ -1186,10 +1363,30 @@ def shopkeeper_analytics(request):
 @permission_classes([IsAuthenticated])
 def create_razorpay_order(request, order_id):
 
-    order = Order.objects.get(id=order_id, user=request.user)
+    order = Order.objects.get(
+        id=order_id,
+        user=request.user
+    )
+
+    installment_id = request.data.get("installment_id")
+
+    # ================= INSTALLMENT PAYMENT =================
+
+    if installment_id:
+
+        installment = RepaymentInstallment.objects.get(
+            id=installment_id,
+            plan__order=order
+        )
+
+        amount = installment.amount
+
+    else:
+        # FULL PAYMENT
+        amount = order.remaining_amount
 
     data = {
-        "amount": int(order.total_amount * 100),  # paise
+        "amount": int(amount * 100),
         "currency": "INR",
         "payment_capture": 1
     }
@@ -1210,7 +1407,12 @@ import hashlib
 @permission_classes([IsAuthenticated])
 def verify_payment(request, order_id):
 
-    order = Order.objects.get(id=order_id, user=request.user)
+    order = Order.objects.get(
+        id=order_id,
+        user=request.user
+    )
+
+    installment_id = request.data.get("installment_id")
 
     razorpay_order_id = request.data["razorpay_order_id"]
     razorpay_payment_id = request.data["razorpay_payment_id"]
@@ -1226,12 +1428,83 @@ def verify_payment(request, order_id):
         hashlib.sha256
     ).hexdigest()
 
-    if generated_signature == razorpay_signature:
+    if generated_signature != razorpay_signature:
 
-        order.status = "paid"
-        order.payment_method = "ready"
+        return Response(
+            {"error": "Invalid signature"},
+            status=400
+        )
+
+    # ================= INSTALLMENT PAYMENT =================
+
+    if installment_id:
+
+        installment = RepaymentInstallment.objects.get(
+            id=installment_id,
+            plan__order=order
+        )
+
+        if installment.status == "paid":
+
+            return Response(
+                {"error": "Already paid"},
+                status=400
+            )
+
+        installment.status = "paid"
+        installment.paid_at = timezone.now()
+        installment.save()
+
+        # reduce remaining amount
+        order.remaining_amount -= installment.amount
+
+        if order.remaining_amount <= 0:
+
+            order.remaining_amount = 0
+            order.status = "paid"
+            order.payment_method = "ready"
+
         order.save()
 
-        return Response({"message": "Payment verified successfully"})
+        Transaction.objects.create(
+            user=request.user,
+            order=order,
+            transaction_type="payment",
+            amount=installment.amount,
+            description="Installment Payment"
+        )
 
-    return Response({"error": "Invalid signature"}, status=400)
+        return Response({
+            "message": "Installment paid successfully"
+        })
+
+    # ================= FULL PAYMENT =================
+
+    order.status = "paid"
+    order.payment_method = "ready"
+    order.remaining_amount = 0
+    order.save()
+
+    return Response({
+        "message": "Payment verified successfully"
+    })
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def repayment_schedule(request, order_id):
+
+    try:
+        plan = RepaymentPlan.objects.get(order_id=order_id)
+
+        serializer = RepaymentPlanSerializer(plan)
+
+        return Response(serializer.data)
+
+    except RepaymentPlan.DoesNotExist:
+
+        return Response(
+            {
+                "message": "No repayment plan created yet"
+            },
+            status=404
+        )
