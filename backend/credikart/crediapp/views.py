@@ -75,7 +75,7 @@ def login_view(request):
         )
 
     refresh = RefreshToken.for_user(user)
-    if user.username=="admin" and user.password=="admin123":
+    if user.is_superuser:
        user = User.objects.get(username="admin")
        user.role = "admin"
        user.is_staff = True
