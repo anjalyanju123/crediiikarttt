@@ -1,7 +1,7 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-const baseURL = "http://127.0.0.1:8000/api";
+const baseURL = "https://crediiikarttt-3.onrender.com/api";
 
 const api = axios.create({
   baseURL,
@@ -27,7 +27,7 @@ api.interceptors.request.use(
       // 🔥 refresh only if expired
       if (isExpired && refreshToken) {
         const res = await axios.post(
-          "http://127.0.0.1:8000/token/refresh/",
+          "https://crediiikarttt-3.onrender.com/token/refresh/",
           { refresh: refreshToken }
         );
 
@@ -69,7 +69,7 @@ api.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          "http://127.0.0.1:8000/token/refresh/",
+          "https://crediiikarttt-3.onrender.com/token/refresh/",
           { refresh: refreshToken }
         );
 
