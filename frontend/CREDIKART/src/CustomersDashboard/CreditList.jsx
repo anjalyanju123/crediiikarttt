@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../api/axios";
 import { Link, useNavigate } from "react-router-dom";
 import Backbutton from "../auth/Backbutton";
-import './CreditList.css'
+import './Creditlist.css'
 
 function CreditList() {
 
