@@ -20,19 +20,6 @@ from datetime import timedelta
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from .payment_gateway import client
-
-
-@api_view(['GET'])
-def create_admin(request):
-
-    if not User.objects.filter(username='admin').exists():
-        User.objects.create_superuser(
-            username='admin',
-            password='Admin@123'
-        )
-        return Response({"message": "Admin created"})
-
-    return Response({"message": "Admin already exists"})
     
 @api_view(["POST"])
 def customer_register(request):
@@ -95,7 +82,13 @@ def login_view(request):
        user.save()
     else:
       user.role = user.role
-  
+   if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser(
+            username='admin',
+            password='Admin@123'
+        )
+        return Response({"message": "Admin created"})
+    return Response({"message": "Admin already exists"})     
     return Response({
         "access": str(refresh.access_token),
         "refresh": str(refresh),
