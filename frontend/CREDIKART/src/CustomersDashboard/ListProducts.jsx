@@ -103,7 +103,7 @@ function ListProducts() {
                         <div className="card" key={p.id}>
                             {p.product_image && (
                                 <img
-                                    src={`http://127.0.0.1:8000${p.product_image}`}
+                                    src={`https://crediiikarttt-3.onrender.com${p.product_image}`}
                                     alt={p.name}
                                     className="product-image"
                                 />
