@@ -305,7 +305,7 @@ function ManageProducts() {
               {product.product_image && (
 
                 <img
-                  src={`http://127.0.0.1:8000${product.product_image}`}
+                  src={`https://crediiikarttt-3.onrender.com${product.product_image}`}
                   alt={product.name}
                   className="product-image"
                 />
