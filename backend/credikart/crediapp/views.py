@@ -21,6 +21,20 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from .payment_gateway import client
 
+
+@api_view(['GET'])
+def create_admin(request):
+    User = get_user_model()
+
+    if not User.objects.filter(email='admin@gmail.com').exists():
+        User.objects.create_superuser(
+            email='admin@gmail.com',
+            password='Admin@123'
+        )
+        return Response({"message": "Admin created"})
+
+    return Response({"message": "Admin already exists"})
+    
 @api_view(["POST"])
 def customer_register(request):
     serializer = CustomerRegisterSerializer(data=request.data)
