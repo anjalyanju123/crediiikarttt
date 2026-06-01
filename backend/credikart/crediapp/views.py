@@ -67,13 +67,6 @@ def login_view(request):
             {"error": "Invalid credentials"},
             status=status.HTTP_401_UNAUTHORIZED
         )
-    if not User.objects.filter(username='admin').exists():
-        User.objects.create_superuser(
-            username='admin',
-            password='Admin@123'
-        )
-        return Response({"message": "Admin created"})
-    return Response({"message": "Admin already exists"}) 
     
     if user.role == "shopkeeper" and not user.is_approved:
         return Response(
