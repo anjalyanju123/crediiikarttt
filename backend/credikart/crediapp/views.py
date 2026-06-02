@@ -63,9 +63,6 @@ def login_view(request):
 
     u = User.objects.filter(username=username).first()
     print("USER:", u)
-
-    user = authenticate(username=username, password=password)
-    print("AUTH RESULT:", user)
     if user is None:
         return Response(
             {"error": "Invalid credentials"},
