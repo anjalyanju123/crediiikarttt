@@ -21,6 +21,10 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from .payment_gateway import client
 
+print("DB ENGINE:", connection.settings_dict["ENGINE"])
+print("DB NAME:", connection.settings_dict["NAME"])
+print("DB HOST:", connection.settings_dict["HOST"])
+
 
 @api_view(["POST"])
 def customer_register(request):
