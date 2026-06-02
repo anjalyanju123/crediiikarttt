@@ -59,7 +59,10 @@ def shopkeeper_register(request):
 def login_view(request):
     username = request.data.get("username")
     password = request.data.get("password")
+    u = User.objects.filter(username=username).first()
 
+    print("USERNAME:", username,password)
+    print("USER EXISTS:", u is not None)
     user = authenticate(
         username=username,
         password=password
