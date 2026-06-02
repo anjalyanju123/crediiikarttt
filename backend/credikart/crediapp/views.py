@@ -25,7 +25,6 @@ if not User.objects.filter(username="admin").exists():
     user = User.objects.get(username="admin")
     user.set_password("Admin123")
     user.save()
-    )
 
 @api_view(["POST"])
 def customer_register(request):
