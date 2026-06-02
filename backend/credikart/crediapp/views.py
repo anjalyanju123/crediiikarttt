@@ -65,7 +65,10 @@ def login_view(request):
     print("REQUEST DATA:", request.data)
     username = request.data.get("username")
     password = request.data.get("password")
-
+    user = authenticate(
+        username=username,
+        password=password
+    )
     u = User.objects.filter(username=username).first()
     print("USER:", u)
     if user is None:
