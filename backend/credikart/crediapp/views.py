@@ -22,9 +22,9 @@ from django.db.models import Sum
 from .payment_gateway import client
 
 if not User.objects.filter(username="admin").exists():
-    User.objects.create_superuser(
-        username="admin",
-        password="Admin123"
+    user = User.objects.get(username="admin")
+    user.set_password("Admin123")
+    user.save()
     )
 
 @api_view(["POST"])
