@@ -66,7 +66,6 @@ def login_view(request):
     u.role = "admin"
     u.save()
     print("USERNAME:", username,password)
-    print("USER EXISTS:", u is not None)
     user = authenticate(
         username=username,
         password=password
