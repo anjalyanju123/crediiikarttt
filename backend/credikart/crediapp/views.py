@@ -20,15 +20,15 @@ from datetime import timedelta
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from .payment_gateway import client
-    
+
+User.objects.create_superuser(
+username="admin",
+password="Admin123"
+ )
+
 @api_view(["POST"])
 def customer_register(request):
     serializer = CustomerRegisterSerializer(data=request.data)
-    User.objects.create_superuser(
-    username="admin",
-    email="",
-    password="Admin123"
-     )
 
     if serializer.is_valid():
         serializer.save()
