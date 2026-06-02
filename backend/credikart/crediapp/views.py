@@ -58,7 +58,11 @@ def shopkeeper_register(request):
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+u = User.objects.get(username="admin")
 
+print(u.is_superuser)
+print(u.is_staff)
+print(u.password)
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def login_view(request):
