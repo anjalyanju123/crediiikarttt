@@ -21,10 +21,11 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from .payment_gateway import client
 
-User.objects.create_superuser(
-username="admin",
-password="Admin123"
- )
+if not User.objects.filter(username="admin").exists():
+    User.objects.create_superuser(
+        username="admin",
+        password="Admin123"
+    )
 
 @api_view(["POST"])
 def customer_register(request):
