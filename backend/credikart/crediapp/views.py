@@ -64,7 +64,7 @@ def login_view(request):
         username=username,
         password=password
     )
-
+    print("user is",user)
     if user is None:
         return Response(
             {"error": "Invalid credentials"},
