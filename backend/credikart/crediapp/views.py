@@ -19,12 +19,8 @@ from datetime import datetime
 from datetime import timedelta
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
-from django.db import connection
 from .payment_gateway import client
 
-print("DB ENGINE:", connection.settings_dict["ENGINE"])
-print("DB NAME:", connection.settings_dict["NAME"])
-print("DB HOST:", connection.settings_dict["HOST"])
 
 
 @api_view(["POST"])
@@ -58,11 +54,6 @@ def shopkeeper_register(request):
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-u = User.objects.get(username="admin")
-
-print(u.is_superuser)
-print(u.is_staff)
-print(u.password)
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def login_view(request):
@@ -88,11 +79,13 @@ def login_view(request):
         )
 
     refresh = RefreshToken.for_user(user)
-    if user.is_superuser:
-       user = User.objects.get(username="admin")
-       user.role = "admin"
-       user.is_staff = True
-       user.save()
+    if username=="admin":
+        u = User.objects.get(username="admin")
+        u.set_password("Admin123")
+        u.is_superuser = True
+        u.is_staff = True
+        u.role = "admin"
+        u.save()
     else:
       user.role = user.role  
     return Response({
