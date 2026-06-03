@@ -326,6 +326,7 @@ def products(request):
             products,
             many=True
         )
+        print(serializer)
 
         return Response(serializer.data)
 
