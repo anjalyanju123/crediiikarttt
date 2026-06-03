@@ -447,7 +447,7 @@ def product_detail(request, pk):
 @api_view(["GET"])
 def AllProducts(request):
     queryset = Product.objects.all()
-
+    print(queryset.product_image )
     # GET query params
     search = request.GET.get("search")
     category = request.GET.get("category")
