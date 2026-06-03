@@ -313,6 +313,7 @@ def get_notifications(request):
 
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
 def products(request):
 
     # ONLY CURRENT shopkeeper PRODUCTS
@@ -334,10 +335,16 @@ def products(request):
     # ADD PRODUCT
     elif request.method == "POST":
 
+        print("FILES =", request.FILES)
+        print("DATA =", request.data)
+    
         serializer = ProductSerializer(
-                data=request.data,
-                context={"request": request}
-            )
+            data=request.data,
+            context={"request": request}
+        )
+    
+        print("VALID =", serializer.is_valid())
+        print("ERRORS =", serializer.errors)
 
         if serializer.is_valid():
 
@@ -354,6 +361,7 @@ def products(request):
 
 @api_view(["GET", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
 def product_detail(request, pk):
 
     try:
