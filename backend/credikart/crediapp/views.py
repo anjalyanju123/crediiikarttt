@@ -341,6 +341,7 @@ def products(request):
         if serializer.is_valid():
 
                 serializer.save()
+                print(serializer)
 
                 return Response(serializer.data, status=201)
 
@@ -390,6 +391,7 @@ def product_detail(request, pk):
         if serializer.is_valid():
 
             serializer.save()
+            print(serializer)
 
             return Response(serializer.data)
 
