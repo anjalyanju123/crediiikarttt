@@ -447,7 +447,7 @@ def product_detail(request, pk):
 @api_view(["GET"])
 def AllProducts(request):
     queryset = Product.objects.all()
-    print(queryset.product_image )
+
     # GET query params
     search = request.GET.get("search")
     category = request.GET.get("category")
@@ -480,6 +480,7 @@ def AllProducts(request):
         queryset = queryset.filter(stock__gt=0)
 
     serializer = ProductSerializer(queryset, many=True)
+    print(serializer.data)
     return Response(serializer.data)
 
 
