@@ -676,262 +676,179 @@ def customer_list(request):
 def place_order(request):
 
     try:
+        with transaction.atomic():
 
-        user = request.user
-        data = request.data
+            user = request.user
+            data = request.data
 
-        payment_method = data.get("payment_method")
-        repayment_schedule = data.get("repayment_schedule")
-        due_date = data.get("due_date")
+            payment_method = data.get("payment_method")
+            repayment_schedule = data.get("repayment_schedule")
+            due_date = data.get("due_date")
 
-        # ================= CART ITEMS =================
+            cart_items = Cart.objects.filter(customer=user)
 
-        cart_items = Cart.objects.filter(
-            customer=user
-        )
-
-        if not cart_items.exists():
-
-            return Response(
-                {"error": "Cart is empty"},
-                status=400
-            )
-
-        # ================= TOTAL =================
-
-        total_amount = sum(
-            item.product.price * item.quantity
-            for item in cart_items
-        )
-
-        # ================= OVERDUE CHECK =================
-
-        overdue_exists = Order.objects.filter(
-            user=user,
-            status="overdue"
-        ).exists()
-
-        if overdue_exists:
-
-            return Response(
-                {
-                    "error":
-                    "Clear overdue payments first"
-                },
-                status=403
-            )
-
-        # ================= INSTALLMENT LOGIC =================
-
-        installment_amount = None
-        total_installments = 1
-        remaining_amount = total_amount
-
-        if payment_method == "credit":
-
-            plan = RepaymentPlan.objects.create(
-
-                order=order,
-
-                schedule_type=repayment_schedule,
-
-                total_installments=total_installments,
-
-                installment_amount=installment_amount,
-
-                start_date=timezone.now().date()
-            )
-
-            # CREATE INSTALLMENTS
-
-            for i in range(total_installments):
-
-                if repayment_schedule == "weekly":
-
-                    due_date = (
-                        timezone.now().date()
-                        + timedelta(days=7 * (i + 1))
-                    )
-
-                else:  # monthly
-
-                    due_date = (
-                        timezone.now().date()
-                        + timedelta(days=30 * (i + 1))
-                    )
-
-                RepaymentInstallment.objects.create(
-
-                    plan=plan,
-
-                    due_date=due_date,
-
-                    amount=installment_amount,
-
-                    status="pending"
-                )
-
-            if repayment_schedule == "weekly" or repayment_schedule == "monthly":
-
-                total_installments = 4
-                installment_amount = (
-                    total_amount / 4
-                )
-
-            elif repayment_schedule == "custom":
-
-                total_installments = 1
-                installment_amount = total_amount
-
-        # ================= CREATE ORDER =================
-
-        order = Order.objects.create(
-
-            user=user,
-
-            total_amount=total_amount,
-
-            remaining_amount=remaining_amount,
-
-            payment_method=payment_method,
-
-            repayment_schedule=repayment_schedule,
-
-            installment_amount=installment_amount,
-
-            total_installments=total_installments,
-
-            installments_paid=0,
-
-            status=(
-                "credit"
-                if payment_method == "credit"
-                else "paid"
-            ),
-
-            due_date=(
-                due_date
-                if payment_method == "credit"
-                else None
-            )
-        )
-
-        # ================= CREATE ORDER ITEMS =================
-
-        for item in cart_items:
-
-            product = item.product
-
-            # STOCK CHECK
-
-            if product.stock < item.quantity:
-
+            if not cart_items.exists():
                 return Response(
-                    {
-                        "error":
-                        f"{product.name} out of stock"
-                    },
+                    {"error": "Cart is empty"},
                     status=400
                 )
 
-            OrderItem.objects.create(
-
-            order=order,
-
-            product=product,
-
-            quantity=item.quantity,
-
-            price=product.price,
-
-            subtotal=(
-                item.quantity * product.price
+            total_amount = sum(
+                item.product.price * item.quantity
+                for item in cart_items
             )
-        )
-        
-            # REDUCE STOCK
 
-            product.stock -= item.quantity
+            overdue_exists = Order.objects.filter(
+                user=user,
+                status="overdue"
+            ).exists()
 
-            if product.stock <= 0:
+            if overdue_exists:
+                return Response(
+                    {"error": "Clear overdue payments first"},
+                    status=403
+                )
 
-                product.stock = 0
-                product.is_available = False
+            # Default values
+            installment_amount = None
+            total_installments = 1
+            remaining_amount = total_amount
 
-            product.save()
+            if payment_method == "credit":
 
-        # ================= TRANSACTION =================
+                if repayment_schedule in ["weekly", "monthly"]:
+                    total_installments = 4
+                    installment_amount = total_amount / 4
 
-        Transaction.objects.create(
+                elif repayment_schedule == "custom":
+                    total_installments = 1
+                    installment_amount = total_amount
 
-            user=user,
-
-            order=order,
-
-            transaction_type=(
-                "credit"
-                if payment_method == "credit"
-                else "payment"
-            ),
-
-            amount=total_amount,
-
-            description=(
-                "Credit Purchase"
-                if payment_method == "credit"
-                else "Ready Payment"
-            )
-        )
-        # ================= NOTIFICATION =================
-
-        if payment_method == "credit":
-
-            Notification.objects.create(
-
-                title="Credit Purchase Created",
-
-                message=(
-                    f"Your payment of ₹{total_amount} "
-                    f"is due on {due_date}"
+            # CREATE ORDER FIRST
+            order = Order.objects.create(
+                user=user,
+                total_amount=total_amount,
+                remaining_amount=remaining_amount,
+                payment_method=payment_method,
+                repayment_schedule=repayment_schedule,
+                installment_amount=installment_amount,
+                total_installments=total_installments,
+                installments_paid=0,
+                status=(
+                    "credit"
+                    if payment_method == "credit"
+                    else "paid"
                 ),
-
-                role="customer"
+                due_date=(
+                    due_date
+                    if payment_method == "credit"
+                    else None
+                )
             )
 
-        # ================= CLEAR CART =================
+            # CREATE REPAYMENT PLAN
+            if payment_method == "credit":
 
-        cart_items.delete()
+                plan = RepaymentPlan.objects.create(
+                    order=order,
+                    schedule_type=repayment_schedule,
+                    total_installments=total_installments,
+                    installment_amount=installment_amount,
+                    start_date=timezone.now().date()
+                )
 
-        return Response({
+                for i in range(total_installments):
 
-            "message":
-            "Order placed successfully",
+                    if repayment_schedule == "weekly":
+                        installment_due_date = (
+                            timezone.now().date()
+                            + timedelta(days=7 * (i + 1))
+                        )
+                    else:
+                        installment_due_date = (
+                            timezone.now().date()
+                            + timedelta(days=30 * (i + 1))
+                        )
 
-            "order_id":
-            order.id,
+                    RepaymentInstallment.objects.create(
+                        plan=plan,
+                        due_date=installment_due_date,
+                        amount=installment_amount,
+                        status="pending"
+                    )
 
-            "total_amount":
-            order.total_amount,
+            # CREATE ORDER ITEMS
+            for item in cart_items:
 
-            "remaining_amount":
-            order.remaining_amount,
+                product = item.product
 
-            "installment_amount":
-            order.installment_amount,
+                if product.stock < item.quantity:
+                    return Response(
+                        {
+                            "error":
+                            f"{product.name} out of stock"
+                        },
+                        status=400
+                    )
 
-            "total_installments":
-            order.total_installments,
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=item.quantity,
+                    price=product.price,
+                    subtotal=item.quantity * product.price
+                )
 
-            "due_date":
-            order.due_date,
+                product.stock -= item.quantity
 
-            "status":
-            order.status
+                if product.stock <= 0:
+                    product.stock = 0
+                    product.is_available = False
 
-        }, status=201)
+                product.save()
+
+            # TRANSACTION
+            Transaction.objects.create(
+                user=user,
+                order=order,
+                transaction_type=(
+                    "credit"
+                    if payment_method == "credit"
+                    else "payment"
+                ),
+                amount=total_amount,
+                description=(
+                    "Credit Purchase"
+                    if payment_method == "credit"
+                    else "Ready Payment"
+                )
+            )
+
+            # NOTIFICATION
+            if payment_method == "credit":
+                Notification.objects.create(
+                    title="Credit Purchase Created",
+                    message=(
+                        f"Your payment of ₹{total_amount} "
+                        f"is due on {order.due_date}"
+                    ),
+                    role="customer"
+                )
+
+            cart_items.delete()
+
+            return Response({
+                "message": "Order placed successfully",
+                "order_id": order.id,
+                "total_amount": order.total_amount,
+                "remaining_amount": order.remaining_amount,
+                "installment_amount": order.installment_amount,
+                "total_installments": order.total_installments,
+                "due_date": order.due_date,
+                "status": order.status
+            }, status=201)
 
     except Exception as e:
-
         return Response(
             {"error": str(e)},
             status=500
