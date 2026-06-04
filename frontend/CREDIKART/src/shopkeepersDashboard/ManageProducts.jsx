@@ -6,7 +6,7 @@ import Backbutton from "../auth/Backbutton";
 function ManageProducts() {
 
   const [products, setProducts] = useState([]);
-
+  const [search, setSearch] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -162,7 +162,10 @@ function ManageProducts() {
       }
     }
   };
-
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(search.toLowerCase()) ||
+    product.category.toLowerCase().includes(search.toLowerCase())
+  );
   return (
 
     <div className="products-page">
@@ -288,12 +291,20 @@ function ManageProducts() {
           </button>
 
         </form>
-
+        <div className="search-container">
+          <input
+            type="text"
+            className="search-bar"
+            placeholder="Search products..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
         {/* PRODUCT LIST */}
 
         <div className="products-grid">
 
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
 
             <div
               className="product-card"
