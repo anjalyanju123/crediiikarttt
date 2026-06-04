@@ -43,7 +43,6 @@ function AdminCustomer() {
             <div>Username</div>
             <div>Email</div>
             <div>Phone</div>
-            <div>Status</div>
           </div>
 
           {customers.map((customer) => (
