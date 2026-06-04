@@ -251,7 +251,7 @@ function Cart() {
               {item.product_image && (
 
                 <img
-                  src={`http://127.0.0.1:8000${item.product_image}`}
+                  src={`https://crediiikarttt-3.onrender.com${item.product_image}`}
                   alt={item.product_name}
                   className="cart-image"
                 />
