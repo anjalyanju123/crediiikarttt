@@ -53,13 +53,6 @@ function AdminCustomer() {
               <div>{customer.email}</div>
               <div>{customer.phone || "N/A"}</div>
 
-              <div>
-                {customer.is_active ? (
-                  <span className="status-approved">Active</span>
-                ) : (
-                  <span className="status-rejected">Blocked</span>
-                )}
-              </div>
             </div>
           ))}
 
