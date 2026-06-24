@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import './Cart.css';
+import "./Cart.css";
 import CustDashboard from "./CustDashboard";
 import { useNavigate } from "react-router-dom";
 
@@ -11,8 +11,12 @@ function Cart() {
 
   // ================= LOAD CART =================
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("cart")) || [];
-    setCart(stored);
+    try {
+      const stored = JSON.parse(localStorage.getItem("cart")) || [];
+      setCart(stored);
+    } catch (err) {
+      setCart([]);
+    }
   }, []);
 
   // ================= SAVE CART =================
@@ -28,6 +32,7 @@ function Cart() {
         ? { ...item, quantity: item.quantity + 1 }
         : item
     );
+
     saveCart(updated);
   };
 
@@ -35,8 +40,8 @@ function Cart() {
   const decreaseQty = (id) => {
     const updated = cart
       .map((item) =>
-        item.id === id && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
+        item.id === id
+          ? { ...item, quantity: Math.max(item.quantity - 1, 1) }
           : item
       )
       .filter((item) => item.quantity > 0);
@@ -56,9 +61,9 @@ function Cart() {
     0
   );
 
-  // ================= PROCEED TO PAYMENT =================
+  // ================= CHECKOUT =================
   const goToPayment = () => {
-    if (cart.length === 0) {
+    if (!cart.length) {
       alert("Cart is empty");
       return;
     }
@@ -83,7 +88,7 @@ function Cart() {
 
       {/* CART ITEMS */}
       {cart.length === 0 ? (
-        <p>Cart is empty</p>
+        <p className="empty-cart">Your cart is empty</p>
       ) : (
         cart.map((item) => (
           <div className="cart-card" key={item.id}>
@@ -107,7 +112,7 @@ function Cart() {
       )}
 
       {/* TOTAL */}
-      <h3>Total: ₹{total}</h3>
+      <h3 className="total">Total: ₹{total}</h3>
 
       {/* PAYMENT METHOD */}
       <div className="payment-box">

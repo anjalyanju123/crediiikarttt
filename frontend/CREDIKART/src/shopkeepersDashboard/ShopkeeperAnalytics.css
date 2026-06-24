@@ -1,0 +1,129 @@
+/* ================= PAGE ================= */
+
+.analytics-page {
+  display: flex;
+  min-height: 100vh;
+  background: #f1f5f9;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* ================= CONTAINER ================= */
+
+.analytics-container {
+  flex: 1;
+  margin-left: 270px;
+  padding: 35px;
+}
+
+/* ================= TITLE ================= */
+
+.analytics-container h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 30px;
+}
+
+/* ================= GRID ================= */
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 25px;
+}
+
+/* ================= CARD ================= */
+
+.analytics-card {
+  background: white;
+  padding: 28px;
+  border-radius: 20px;
+
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+
+  transition: 0.3s ease;
+}
+
+.analytics-card:hover {
+  transform: translateY(-5px);
+}
+
+/* ================= CARD TITLE ================= */
+
+.analytics-card h3 {
+  font-size: 18px;
+  color: #64748b;
+  margin-bottom: 15px;
+}
+
+/* ================= VALUE ================= */
+
+.analytics-card h1 {
+  font-size: 38px;
+  font-weight: 700;
+}
+
+/* ================= COLORS ================= */
+
+.credit-card {
+  border-left: 6px solid #f59e0b;
+}
+
+.credit-card h1 {
+  color: #d97706;
+}
+
+.paid-card {
+  border-left: 6px solid #22c55e;
+}
+
+.paid-card h1 {
+  color: #16a34a;
+}
+
+.weekly-credit-card {
+  border-left: 6px solid #3b82f6;
+}
+
+.weekly-credit-card h1 {
+  color: #2563eb;
+}
+
+.weekly-paid-card {
+  border-left: 6px solid #06b6d4;
+}
+
+.weekly-paid-card h1 {
+  color: #0891b2;
+}
+
+.monthly-credit-card {
+  border-left: 6px solid #8b5cf6;
+}
+
+.monthly-credit-card h1 {
+  color: #7c3aed;
+}
+
+.monthly-paid-card {
+  border-left: 6px solid #ec4899;
+}
+
+.monthly-paid-card h1 {
+  color: #db2777;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+
+  .analytics-container {
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+}

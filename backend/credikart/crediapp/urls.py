@@ -24,4 +24,10 @@ urlpatterns = [
     path('place_order/',place_order,name='place_order'),
     path('credit_list/',credit_list,name='credit_list'),
     path('credit_history/',credit_history,name='credit_history'),
+    path('customer_notifications/',customer_notifications,name='customer_notifications'),
+    path('customer_transactions/',customer_transactions,name='customer_transactions'),
+    path('orders_list/',orders_list,name='orders_list'),
+    path("order/<int:order_id>/set-due/", set_due_date, name="set_due_date"),
+    path("order/<int:order_id>/notify/", send_due_notification, name="send_due_notification"),
+    path('shopkeeper_analytics/',shopkeeper_analytics,name='shopkeeper_analytics'),
 ]

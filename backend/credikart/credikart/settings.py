@@ -55,17 +55,19 @@ MIDDLEWARE = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-
 AUTH_USER_MODEL = "crediapp.User"
 
+
 REST_FRAMEWORK = {
-
     'DEFAULT_AUTHENTICATION_CLASSES': (
-
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
 }
+
+
 
 ROOT_URLCONF = 'credikart.urls'
 
@@ -93,7 +95,7 @@ WSGI_APPLICATION = 'credikart.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'DB4',
+        'NAME': 'credikartdb',
         'USER': 'postgres',
         'PASSWORD': 'Anjaly',
         'HOST': 'localhost',

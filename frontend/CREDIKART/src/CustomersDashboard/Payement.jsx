@@ -39,14 +39,26 @@ function Payment() {
 
       // ================= REDIRECT LOGIC =================
       if (data.paymentMethod === "credit") {
-        navigate("/credit-list");   
+        navigate("/credit-list");
       } else {
-        navigate("/orders");      
+        navigate("/customer-transactions");
       }
 
     } catch (err) {
+
       console.log(err);
-      alert("Payment failed");
+
+      if (err.response?.status === 403) {
+
+        alert("You have overdue credit payments");
+
+        navigate("/credit-list");
+
+      } else {
+
+        alert("Payment failed");
+
+      }
     }
   };
 
@@ -54,7 +66,7 @@ function Payment() {
 
   return (
     <div className="payment-page">
-        <CustDashboard />
+      <CustDashboard />
       <h2>Payment Page</h2>
 
       <div className="payment-summary">

@@ -1,0 +1,123 @@
+/* ================= PAGE ================= */
+
+.due-page {
+  display: flex;
+  min-height: 100vh;
+  background: #f1f5f9;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* ================= CONTAINER ================= */
+
+.due-container {
+  flex: 1;
+  margin-left: 270px;
+  padding: 35px;
+}
+
+/* ================= TITLE ================= */
+
+.due-container h2 {
+  font-size: 30px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 30px;
+}
+
+/* ================= GRID ================= */
+
+.due-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* ================= CARD ================= */
+
+.due-card {
+  background: #ffffff;
+  padding: 22px;
+  border-radius: 18px;
+
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+
+  transition: 0.3s ease;
+  border-left: 6px solid #f59e0b;
+}
+
+/* ================= CARD HOVER ================= */
+
+.due-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+}
+
+/* ================= CARD TITLE ================= */
+
+.due-card h3 {
+  font-size: 22px;
+  color: #1e293b;
+  margin-bottom: 15px;
+}
+
+/* ================= TEXT ================= */
+
+.due-card p {
+  font-size: 15px;
+  color: #475569;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.due-card strong {
+  color: #0f172a;
+}
+
+/* ================= BUTTON ================= */
+
+.notify-btn {
+  width: 100%;
+  margin-top: 15px;
+
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+/* ================= BUTTON HOVER ================= */
+
+.notify-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(245, 158, 11, 0.25);
+}
+
+/* ================= EMPTY TEXT ================= */
+
+.due-container p {
+  font-size: 16px;
+  color: #64748b;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+
+  .due-container {
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  .due-grid {
+    grid-template-columns: 1fr;
+  }
+
+}

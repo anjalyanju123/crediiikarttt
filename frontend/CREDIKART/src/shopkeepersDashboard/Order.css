@@ -1,0 +1,94 @@
+.orders-container {
+  padding: 25px;
+  margin-left: 270px;
+  font-family: "Segoe UI", sans-serif;
+  background: #f4f6fb;
+  min-height: 100vh;
+}
+
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.order-card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: 0.2s;
+}
+
+.order-card:hover {
+  transform: translateY(-3px);
+}
+
+.order-card h4 {
+  margin-bottom: 10px;
+}
+
+.order-card p {
+  font-size: 14px;
+  margin: 4px 0;
+  color: #334155;
+}
+
+.due-section {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.due-section input {
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.due-section button {
+  padding: 6px 10px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.notify-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 8px;
+  background: #f59e0b;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+}
+
+.notify-btn:hover {
+  background: #d97706;
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.filters select,
+.filters input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  font-size: 14px;
+  background: white;
+}
+
+.filters select:focus,
+.filters input:focus {
+  border-color: #2563eb;
+}

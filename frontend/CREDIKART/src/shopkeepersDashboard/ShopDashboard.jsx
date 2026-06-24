@@ -37,7 +37,7 @@ function ShopDashboard() {
 
             <nav className="sidebar-nav">
                 <NavLink
-                    to="/admin-dashboard"
+                    to="/shopkeeper-dashboard"
                     className={({ isActive }) =>
                         isActive ? "sidebar-link active" : "sidebar-link"
                     }
@@ -64,49 +64,32 @@ function ShopDashboard() {
                 </NavLink>
 
                 <NavLink
-                    to="/transactions"
+                    to="/Orders"
                     className={({ isActive }) =>
                         isActive ? "sidebar-link active" : "sidebar-link"
                     }
                 >
-                    Transactions
+                    Orders
                 </NavLink>
 
                 <NavLink
-                    to="/pending-shopkeepers"
-                    className={({ isActive }) =>
-                        isActive ? "sidebar-link active" : "sidebar-link"
-                    }
-                >
-                    Approvals
-                </NavLink>
-
-                <NavLink
-                    to="/send-notifications"
+                    to="/Shopsend-notifications"
                     className={({ isActive }) =>
                         isActive ? "sidebar-link active" : "sidebar-link"
                     }
                 >
                     Send Notifications
                 </NavLink>
-
                 <NavLink
-                    to="/analytics"
+                    to="/Shopkeeper-Analytics"
                     className={({ isActive }) =>
                         isActive ? "sidebar-link active" : "sidebar-link"
                     }
                 >
-                    Analytics
+                    Shopkeeper-Analytics
                 </NavLink>
 
-                <NavLink
-                    to="/admin-revenue"
-                    className={({ isActive }) =>
-                        isActive ? "sidebar-link active" : "sidebar-link"
-                    }
-                >
-                    Revenue Analytics
-                </NavLink>
+
             </nav>
 
             <div className="sidebar-footer">

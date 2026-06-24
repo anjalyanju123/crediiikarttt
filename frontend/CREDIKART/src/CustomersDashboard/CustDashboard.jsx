@@ -7,7 +7,7 @@ function CustDashboard() {
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
 
-    useEffect(()=>{fetchCurrentUser()},[]);
+    useEffect(() => { fetchCurrentUser() }, []);
 
     const fetchCurrentUser = async () => {
         try {
@@ -64,7 +64,7 @@ function CustDashboard() {
                 </NavLink>
 
                 <NavLink
-                    to="/transactions"
+                    to="/customer-transactions"
                     className={({ isActive }) =>
                         isActive ? "sidebar-link active" : "sidebar-link"
                     }
@@ -73,39 +73,29 @@ function CustDashboard() {
                 </NavLink>
 
                 <NavLink
-                    to="/payment"
+                    to="/customer-notifications"
                     className={({ isActive }) =>
                         isActive ? "sidebar-link active" : "sidebar-link"
                     }
                 >
-                    Payment
+                    Notifications
                 </NavLink>
 
                 <NavLink
-                    to="/send-notifications"
+                    to="/credit-list"
                     className={({ isActive }) =>
                         isActive ? "sidebar-link active" : "sidebar-link"
                     }
                 >
-                    Send Notifications
+                    Credits
                 </NavLink>
-
-                <NavLink
-                    to="/analytics"
+                   <NavLink
+                    to="/credit-history"
                     className={({ isActive }) =>
                         isActive ? "sidebar-link active" : "sidebar-link"
                     }
                 >
-                    Analytics
-                </NavLink>
-
-                <NavLink
-                    to="/admin-revenue"
-                    className={({ isActive }) =>
-                        isActive ? "sidebar-link active" : "sidebar-link"
-                    }
-                >
-                    Revenue Analytics
+                    Credit History
                 </NavLink>
             </nav>
 

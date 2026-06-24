@@ -43,7 +43,6 @@ function CustomerRegister() {
     }
     try {
       const res = await api.post("/customer_register/", formData);
-      setMessage("Customer registered successfully!");
       console.log(res.data);
 
       setFormData({
@@ -55,6 +54,7 @@ function CustomerRegister() {
         confirm_password: "",
       });
       navigate('/')
+      setMessage("Customer registered successfully!");
     } catch (error) {
       setMessage("Registration failed");
       console.log(error);

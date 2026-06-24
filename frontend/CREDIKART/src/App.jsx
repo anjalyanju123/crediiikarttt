@@ -19,6 +19,11 @@ import Cart from './CustomersDashboard/Cart';
 import Payment from './CustomersDashboard/Payement';
 import CreditList from './CustomersDashboard/CreditList';
 import CreditHistory from './CustomersDashboard/CreditHistory';
+import Notifications from './CustomersDashboard/Nofications';
+import Transactions from './CustomersDashboard/Transactions';
+import Order from './shopkeepersDashboard/Order';
+import Shopsend_notifications from './shopkeepersDashboard/Shopsend_notifications';
+import ShopkeeperAnalytics from './shopkeepersDashboard/ShopkeeperAnalytics';
 function App() {
  
 
@@ -41,6 +46,11 @@ function App() {
       <Route path='/shopkeeper-dashboard' element={<ShopDashboard />}/>
       <Route path='/manage-products' element={<ManageProducts />}/>
       <Route path="/customers" element={<Customers />} />
+      <Route path='/orders' element={<Order />}/>
+      <Route path='/Shopsend-notifications' element={<Shopsend_notifications/>}/>
+      <Route path='/Shopkeeper-Analytics' element={<ShopkeeperAnalytics />}/>
+
+      
 
       <Route path='/customer-dashboard' element={<CustDashboard />}/>
       <Route path='/list-products' element={<ListProducts />}/>
@@ -48,7 +58,8 @@ function App() {
       <Route path='/payment' element={<Payment/>}/>
       <Route path='/credit-list' element={<CreditList />}/>
       <Route path='/credit-history' element={<CreditHistory />}/>
-
+      <Route path='/customer-notifications' element={<Notifications />}/>
+      <Route path='/customer-transactions' element={<Transactions />}/>
 
     </Routes>
     </BrowserRouter>
